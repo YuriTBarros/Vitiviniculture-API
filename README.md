@@ -3,70 +3,76 @@
 
 # Code Structure
 
-vitivinicultura-api/
+# Wine Production Data API Structure
+
+## Project Directory Structure
+
+```
+vitiviniculture-api/
 │
-├── .github/                      # Configurações de CI/CD para GitHub Actions
+├── .github/                      # CI/CD configurations for GitHub Actions
 │   └── workflows/
-│       └── deploy.yml            # Workflow para automação de deploy
+│       └── deploy.yml            # Workflow for deployment automation
 │
-├── api/                          # Código principal da API
+├── api/                          # Main API code
 │   ├── __init__.py
-│   ├── main.py                   # Ponto de entrada da aplicação
-│   ├── core/                     # Componentes centrais
+│   ├── main.py                   # Application entry point
+│   ├── core/                     # Core components
 │   │   ├── __init__.py
-│   │   ├── config.py             # Configurações da aplicação
-│   │   ├── security.py           # Autenticação JWT
-│   │   └── logging.py            # Configuração de logs
+│   │   ├── config.py             # Application configurations
+│   │   ├── security.py           # JWT authentication
+│   │   └── logging.py            # Logging configuration
 │   │
-│   ├── models/                   # Modelos de dados/schemas
+│   ├── models/                   # Data models/schemas
 │   │   ├── __init__.py
-│   │   ├── producao.py
-│   │   ├── processamento.py
-│   │   ├── comercializacao.py
-│   │   ├── importacao.py
-│   │   └── exportacao.py
+│   │   ├── production.py
+│   │   ├── processing.py
+│   │   ├── commercialization.py
+│   │   ├── import.py
+│   │   └── export.py
 │   │
-│   ├── services/                 # Lógica de negócio/serviços
+│   ├── services/                 # Business logic/services
 │   │   ├── __init__.py
-│   │   ├── scraper.py            # Serviço para raspagem de dados da Embrapa
-│   │   └── data_processor.py     # Processamento de dados
+│   │   ├── scraper.py            # Service for scraping data from Embrapa
+│   │   └── data_processor.py     # Data processing
 │   │
-│   ├── routes/                   # Endpoints da API
+│   ├── routes/                   # API endpoints
 │   │   ├── __init__.py
-│   │   ├── producao.py
-│   │   ├── processamento.py
-│   │   ├── comercializacao.py
-│   │   ├── importacao.py
-│   │   └── exportacao.py
+│   │   ├── production.py
+│   │   ├── processing.py
+│   │   ├── commercialization.py
+│   │   ├── import.py
+│   │   └── export.py
 │   │
-│   └── utils/                    # Utilitários
+│   └── utils/                    # Utility functions
 │       ├── __init__.py
-│       └── helpers.py            # Funções auxiliares
+│       └── helpers.py            # Helper functions
 │
-├── database/                     # Banco de dados SQLite
+├── database/                     # SQLite database
 │   ├── __init__.py
-│   ├── db.py                     # Configuração do SQLite
-│   └── models.py                 # Modelos ORM
+│   ├── db.py                     # SQLite configuration
+│   └── models.py                 # ORM models
 │
-├── data/                         # Diretório para armazenar o arquivo SQLite
-│   └── .gitkeep                  # Garante que o diretório seja versionado mesmo vazio
+├── data/                         # Directory to store SQLite database file
+│   └── .gitkeep                  # Ensures the directory is versioned even if empty
 │
-├── docs/                         # Documentação
-│   ├── architecture.md           # Documentação da arquitetura
-│   └── api.md                    # Documentação da API
+├── docs/                         # Documentation
+│   ├── architecture.md           # Architecture documentation
+│   └── api.md                    # API documentation
 │
-├── tests/                        # Testes automatizados
+├── tests/                        # Automated tests
 │   ├── __init__.py
-│   ├── test_routes/              # Testes dos endpoints
-│   ├── test_services/            # Testes dos serviços
-│   └── conftest.py               # Configurações para testes
+│   ├── test_routes/              # Tests for API endpoints
+│   ├── test_services/            # Tests for services
+│   └── conftest.py               # Test configurations
 │
-├── .gitignore                    # Arquivos a serem ignorados pelo git
-├── Dockerfile                    # Configuração para containerização
-├── docker-compose.yml            # Orquestração de containers
-├── requirements.txt              # Dependências do projeto
-├── README.md                     # Documentação do projeto
-└── setup.py                      # Configuração para instalação do pacote
+├── .gitignore                    # Files to be ignored by Git
+├── Dockerfile                    # Containerization setup
+├── docker-compose.yml            # Container orchestration
+├── requirements.txt              # Project dependencies
+├── README.md                     # Project documentation
+└── setup.py                      # Setup for package installation
+```
 
 # Detailed Explanation of the Project Structure
 

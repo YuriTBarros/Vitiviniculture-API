@@ -1,56 +1,56 @@
 import pandas as pd
 
-from scrap_processamento import ScraperProcessamento
-from scrap_comercio import ScraperComercio
-from scrap_producao import ScraperProducao
-from scrap_importacao import ScraperImportacao
-from scrap_exportacao import ScraperExportacao
+from processing_scraper import ProcessingScraper
+from trade_scraper import TradeScraper
+from production_scraper import ProductionScraper
+from importation_scraper import ImportationScraper
+from exportation_scraper import ExportationScraper
 
 
 class Orchestrator():
-    def exec_processamento(self):
+    def exec_processing(self):
         try:
-            df_processamento = ScraperProcessamento().exec()
-            return df_processamento
+            df_processing = ProcessingScraper().exec()
+            return df_processing
         except Exception as e:
-            df_processamento = pd.read_csv(r'vitivinicultura-api\data\processamento.csv')
-            return df_processamento
+            df_processing = pd.read_csv(r'vitivinicultura-api\data\processamento.csv')
+            return df_processing
             
-    def exec_comercio(self):
+    def exec_trade(self):
         try:
-            df_comercio = ScraperComercio().exec()
-            return df_comercio
+            df_trade = TradeScraper().exec()
+            return df_trade
         except Exception as e:
-            df_comercio = pd.read_csv(r'vitivinicultura-api\data\tabela_comercio.csv')
-            return df_comercio
+            df_trade = pd.read_csv(r'vitivinicultura-api\data\tabela_comercio.csv')
+            return df_trade
 
-    def exec_producao(self):
+    def exec_production(self):
         try:
-            df_producao = ScraperProducao().exec()
-            return df_producao
+            df_production = ProductionScraper().exec()
+            return df_production
         except Exception as e:
-            df_producao = pd.read_csv(r'vitivinicultura-api\data\tabela_producao.csv')
-            return df_producao
+            df_production = pd.read_csv(r'vitivinicultura-api\data\tabela_producao.csv')
+            return df_production
         
-    def exec_importacao(self):
+    def exec_importation(self):
         try:
-            df_producao = ScraperImportacao().exec()
-            return df_producao
+            df_importation = ImportationScraper().exec()
+            return df_importation
         except Exception as e:
-            df_producao = pd.read_csv(r'vitivinicultura-api\data\tabela_importacao.csv')
-            return df_producao
+            df_importation = pd.read_csv(r'vitivinicultura-api\data\tabela_importacao.csv')
+            return df_importation
         
-    def exec_exportacao(self):
+    def exec_exportation(self):
         try:
-            df_producao = ScraperExportacao().exec()
-            return df_producao
+            df_exportation = ExportationScraper().exec()
+            return df_exportation
         except Exception as e:
-            df_producao = pd.read_csv(r'vitivinicultura-api\data\tabela_exportacao.csv')
-            return df_producao
+            df_exportation = pd.read_csv(r'vitivinicultura-api\data\tabela_exportacao.csv')
+            return df_exportation
         
     def exec(self):
-        self.exec_processamento()
-        self.exec_comercio()
-        self.exec_producao()
-        self.exec_importacao()
-        self.exec_exportacao()
+        self.exec_processing()
+        self.exec_trade()
+        self.exec_production()
+        self.exec_importation()
+        self.exec_exportation()

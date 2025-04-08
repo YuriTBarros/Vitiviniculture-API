@@ -2,41 +2,41 @@ import pandas as pd
 import requests
 from bs4 import BeautifulSoup
 
-class ScraperExportacao():
+class ImportationScraper():
     def __init__(self):
         self.base_url = 'http://vitibrasil.cnpuv.embrapa.br/index.php'
-        self.anos = None
+        self.years = None
 
     def get_year(self):
-        response = requests.get(self.base_url + '?opcao=opt_06')
+        response = requests.get(self.base_url + '?opcao=opt_05')
         soup = BeautifulSoup(response.content, 'html.parser')
-        select_anos = soup.find('input', {'class':'text_pesq'})
-        self.anos = [ano for ano in range(int(select_anos['min']), int(select_anos['max']) + 1)]
+        select_years = soup.find('input', {'class':'text_pesq'})
+        self.years = [year for year in range(int(select_years['min']), int(select_years['max']) + 1)]
 
-    def remover_categorias(self, df):
+    def remove_categories(self, df):
         mask = df['Países'].apply(lambda x: isinstance(x, str) and not x.strip().isupper())
         return df[mask].reset_index(drop=True)
     
-    def table_importacao(self):
+    def importation_table(self):
         dfs = []
-        for ano in self.anos:
-            for subop in range(1, 5):
-                subopcao = f"subopt_0{subop}"
-                url = f"{self.base_url}?subopcao={subopcao}&opcao=opt_06&ano={ano}"
+        for year in self.years:
+            for subop in range(1, 6):
+                suboption = f"subopt_0{subop}"
+                url = f"{self.base_url}?subopcao={suboption}&opcao=opt_05&ano={year}"
                 try:
-                    df_ano = pd.read_html(url)[3]
-                    df_ano['ano'] = ano
-                    df_ano['subopcao'] = subopcao
-                    dfs.append(df_ano)
+                    df_year = pd.read_html(url)[3]
+                    df_year['ano'] = year
+                    df_year['subopcao'] = suboption
+                    dfs.append(df_year)
                 except Exception as e:
-                    print(f"Erro no ano {ano}, subopcao {subopcao}: {e}")
+                    print(f"Error in {ano}, suboption {subopcao}: {e}")
         
         df_final = pd.concat(dfs, ignore_index=True)
 
-        # Remove a coluna desnecessária, se existir
+        # Remove  columns 'Unnamed: 2' and / or 'Sem definiÃ§Ã£o' if required 
         if 'Unnamed: 2' or 'Sem definiÃ§Ã£o' in df_final.columns:
-            colunas_a_remover = ['Unnamed: 2', 'Sem definiÃ§Ã£o']
-            df_final = df_final.drop(columns=[col for col in colunas_a_remover if col in df_final.columns])
+            columns_to_remove = ['Unnamed: 2', 'Sem definiÃ§Ã£o']
+            df_final = df_final.drop(columns=[col for col in columns_to_remove if col in df_final.columns])
 
         df_final = df_final.rename(columns={'PaÃ­ses': 'Países'})
         return df_final
@@ -48,12 +48,12 @@ class ScraperExportacao():
             try:
                 return x.encode('latin1').decode('utf-8')
             except (UnicodeEncodeError, UnicodeDecodeError):
-                return x  # Retorna original se falhar
+                return x  # If fails, original is returned
 
         df['Países'] = df['Países'].astype(str).apply(try_fix_encoding)
         return df
 
-    def replace_quantidade(self, df):
+    def replace_quantity(self, df):
         df['Quantidade (Kg)'] = df['Quantidade (Kg)'].replace('-','0')
         df['Valor (US$)'] = df['Valor (US$)'].replace('-','0')
         return df['Quantidade (Kg)'], df['Valor (US$)']
@@ -78,42 +78,42 @@ class ScraperExportacao():
         df['Valor (US$)'] = pd.to_numeric(df['Valor (US$)'], errors='coerce')
         return df['Quantidade (Kg)'], df['Valor (US$)'] 
     
-    def remover_nan(self, df):
+    def remove_nan(self, df):
         df = df.dropna(axis=0)
         return df
     
-    def remover_total(self, df):
+    def remove_total(self, df):
         df = df[df['Países'] != 'Total']
         return df
     
-    def nomear_subopcoes(self, df):
-        mapeamento = {
+    def suboptions_labeling(self, df):
+        map = {
             'subopt_01': 'Vinhos de mesa',
             'subopt_02': 'Espumantes',
             'subopt_03': 'Uvas frescas',
             'subopt_04': 'Uvas passas',
             'subopt_05': 'Suco de uva'
         }
-        df['subopcao'] = df['subopcao'].map(mapeamento)
+        df['subopcao'] = df['subopcao'].map(map)
         return df
 
     def save_df(self, df):
-        df.to_csv(r'vitivinicultura-api\data\tabela_exportacao.csv', index=False)
+        df.to_csv(r'vitivinicultura-api\data\tabela_importacao.csv', index=False)
 
     def exec(self):
         self.get_year()
-        df = self.table_importacao()
+        df = self.importation_table()
         df = self.encode_latin1(df)
-        df['Quantidade (Kg)'], df['Valor (US$)'] = self.replace_quantidade(df)
+        df['Quantidade (Kg)'], df['Valor (US$)'] = self.replace_quantity(df)
         df['Quantidade (Kg)'], df['Valor (US$)'] = self.column_to_numeric(df)
-        df = self.remover_categorias(df)
-        df = self.remover_nan(df)
-        df = self.remover_total(df)
-        df = self.nomear_subopcoes(df)
+        df = self.remove_categories(df)
+        df = self.remove_nan(df)
+        df = self.remove_total(df)
+        df = self.suboptions_labeling(df)
         self.save_df(df)
         return df
 
 
-run = ScraperExportacao()
+run = ImportationScraper()
 run.exec()
-print('Exportação executado')
+print('Importation executed.')

@@ -2,61 +2,60 @@ import pandas as pd
 import requests
 from bs4 import BeautifulSoup
 
-class ScraperProcessamento():
+class ProcessingScraper():
     def __init__(self):
         self.base_url = 'http://vitibrasil.cnpuv.embrapa.br/index.php'
-        self.anos = None
+        self.years = None
 
     def get_year(self):
         response = requests.get(self.base_url + '?opcao=opt_03')
         soup = BeautifulSoup(response.content, 'html.parser')
-        select_anos = soup.find('input', {'class':'text_pesq'})
-        self.anos = [ano for ano in range(int(select_anos['min']), int(select_anos['max']) + 1)]
+        select_years = soup.find('input', {'class':'text_pesq'})
+        self.years = [year for year in range(int(select_years['min']), int(select_years['max']) + 1)]
         
-    def categorizar(self, df: pd.DataFrame):
-        categoria_atual = None
-        categorias = []
+    def categorize(self, df: pd.DataFrame):
+        current_category = None
+        categories = []
 
-        for produto in df['Cultivar']:
-            produto_str = str(produto).strip()
+        for product in df['Cultivar']:
+            product_str = str(product).strip()
 
-            if produto_str.isupper() and produto_str != 'NAN':
-                categoria_atual = produto_str
+            if product_str.isupper() and product_str != 'NAN':
+                current_category = product_str
 
-            categorias.append(categoria_atual)
+            categories.append(current_category)
 
-        df['Categoria'] = categorias
+        df['Categoria'] = categories
         return df
 
-    def remover_categorias(self, df):
+    def remove_categories(self, df):
         mask = df['Cultivar'].apply(lambda x: isinstance(x, str) and not x.strip().isupper())
         return df[mask].reset_index(drop=True)
     
-    def table_processamento(self):
+    def processing_table(self):
         dfs = []
-        for ano in self.anos:
-            for subop in range(1, 5):  # subopt_01 a subopt_04
-                subopcao = f"subopt_0{subop}"
-                url = f"{self.base_url}?subopcao={subopcao}&opcao=opt_03&ano={ano}"
+        for year in self.years:
+            for subop in range(1, 5):  # subopt_01 to subopt_04
+                suboption = f"subopt_0{subop}"
+                url = f"{self.base_url}?subopcao={suboption}&opcao=opt_03&ano={year}"
                 try:
-                    df_ano = pd.read_html(url)[3]
-                    df_ano['ano'] = ano
-                    df_ano['subopcao'] = subopcao
-                    dfs.append(df_ano)
+                    df_year = pd.read_html(url)[3]
+                    df_year['ano'] = year
+                    df_year['subopcao'] = suboption
+                    dfs.append(df_year)
                 except Exception as e:
-                    print(f"Erro no ano {ano}, subopcao {subopcao}: {e}")
+                    print(f"Error in {year}, suboption {suboption}: {e}")
         
         df_final = pd.concat(dfs, ignore_index=True)
 
-        # Remove a coluna desnecessária, se existir
+        # Remove  columns 'Unnamed: 2' and / or 'Sem definiÃ§Ã£o' if required 
         if 'Unnamed: 2' or 'Sem definiÃ§Ã£o' in df_final.columns:
-            # Remove colunas desnecessárias ou corrompidas
-            colunas_a_remover = ['Unnamed: 2', 'Sem definiÃ§Ã£o']
-            df_final = df_final.drop(columns=[col for col in colunas_a_remover if col in df_final.columns])
+            columns_to_remove = ['Unnamed: 2', 'Sem definiÃ§Ã£o']
+            df_final = df_final.drop(columns=[col for col in columns_to_remove if col in df_final.columns])
 
 
-        # Chama a função de categorização
-        df_final = self.categorizar(df_final)
+        # Calls the function Categorize
+        df_final = self.categorize(df_final)
 
         return df_final
 
@@ -66,15 +65,15 @@ class ScraperProcessamento():
             if not isinstance(x, str):
                 return x
             try:
-                # Tenta decodificar de latin1 para utf-8 apenas se fizer sentido
+                # change from latin1 to utf-8 if required
                 return x.encode('latin1').decode('utf-8')
             except (UnicodeEncodeError, UnicodeDecodeError):
-                return x  # Retorna original se falhar
-
+                return x  # If fails, original is returned
+            
         df['Cultivar'] = df['Cultivar'].astype(str).apply(try_fix_encoding)
         return df
 
-    def replace_quantidade(self, df):
+    def replace_quantity(self, df):
         df['Quantidade (Kg)'] = df['Quantidade (Kg)'].replace('-','0')
         return df['Quantidade (Kg)'] 
 
@@ -90,22 +89,22 @@ class ScraperProcessamento():
         df['Quantidade (Kg)'] = pd.to_numeric(df['Quantidade (Kg)'], errors='coerce')
         return df['Quantidade (Kg)'] 
     
-    def remover_nan(self, df):
+    def remove_nan(self, df):
         df = df.dropna(axis=0)
         return df
     
-    def remover_total(self, df):
+    def remove_total(self, df):
         df = df[df['Cultivar'] != 'Total']
         return df
     
-    def nomear_subopcoes(self, df):
-        mapeamento = {
+    def suboptions_labeling(self, df):
+        map = {
             'subopt_01': 'Viníferas',
             'subopt_02': 'Americanas e híbridas',
             'subopt_03': 'Uvas de mesa',
             'subopt_04': 'Sem classificação'
         }
-        df['subopcao'] = df['subopcao'].map(mapeamento)
+        df['subopcao'] = df['subopcao'].map(map)
         return df
 
     def save_df(self, df):
@@ -113,18 +112,18 @@ class ScraperProcessamento():
 
     def exec(self):
         self.get_year()
-        df = self.table_processamento()
+        df = self.processing_table()
         df = self.encode_latin1(df)
-        df['Quantidade (Kg)'] = self.replace_quantidade(df)
+        df['Quantidade (Kg)'] = self.replace_quantity(df)
         df['Quantidade (Kg)'] = self.column_to_numeric(df)
-        df = self.categorizar(df)
-        df = self.remover_categorias(df)
-        df = self.remover_nan(df)
-        df = self.remover_total(df)
-        df = self.nomear_subopcoes(df)
+        df = self.categorize(df)
+        df = self.remove_categories(df)
+        df = self.remove_nan(df)
+        df = self.remove_total(df)
+        df = self.suboptions_labeling(df)
         self.save_df(df)
         return df
 
-run = ScraperProcessamento()
+run = ProcessingScraper()
 run.exec()
-print('Processamento executado')
+print('Processing executed.')

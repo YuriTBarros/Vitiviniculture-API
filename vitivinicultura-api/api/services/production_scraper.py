@@ -2,56 +2,56 @@ import pandas as pd
 import requests
 from bs4 import BeautifulSoup
 
-class ScraperProducao():
+class ProductionScraper():
     def __init__(self):
         self.base_url = 'http://vitibrasil.cnpuv.embrapa.br/index.php'
-        self.anos = None
+        self.years = None
 
     def get_year(self):
         response = requests.get(self.base_url + '?opcao=opt_02')
         soup = BeautifulSoup(response.content, 'html.parser')
-        select_anos = soup.find('input', {'class':'text_pesq'})
-        self.anos = [ano for ano in range(int(select_anos['min']), int(select_anos['max']) + 1)]
+        select_years = soup.find('input', {'class':'text_pesq'})
+        self.years = [year for year in range(int(select_years['min']), int(select_years['max']) + 1)]
         
-    def categorizar(self, df: pd.DataFrame):
-        categoria_atual = None
-        categorias = []
+    def categorize(self, df: pd.DataFrame):
+        current_category = None
+        categories = []
 
-        for produto in df['Produto']:
-            produto_str = str(produto).strip()
+        for product in df['Produto']:
+            product_str = str(product).strip()
 
-            if produto_str.isupper() and produto_str != 'NAN':
-                categoria_atual = produto_str
+            if product_str.isupper() and product_str != 'NAN':
+                current_category = product_str
 
-            categorias.append(categoria_atual)
+            categories.append(current_category)
 
-        df['Categoria'] = categorias
+        df['Categoria'] = categories
         return df
 
     
-    def remover_categorias(self, df):
+    def remove_categories(self, df):
         mask = df['Produto'].apply(lambda x: isinstance(x, str) and not x.strip().isupper())
         return df[mask].reset_index(drop=True)
     
-    def table_producao(self):
+    def production_table(self):
         dfs = []
-        for ano in self.anos:
-            url = f"{self.base_url}?ano={ano}&opcao=opt_02"
+        for year in self.years:
+            url = f"{self.base_url}?ano={year}&opcao=opt_02"
             try:
-                df_ano = pd.read_html(url)[3]
-                df_ano['ano'] = ano
-                dfs.append(df_ano)
+                df_year = pd.read_html(url)[3]
+                df_year['ano'] = year
+                dfs.append(df_year)
             except Exception as e:
-                print(f"Erro no ano {ano}: {e}")
+                print(f"Erro in {year}: {e}")
         
         df_final = pd.concat(dfs, ignore_index=True)
 
-        # Remove a coluna desnecessária, se existir
+        #  Remove column 'Unnamed: 2' if necessary.
         if 'Unnamed: 2' in df_final.columns:
             df_final = df_final.drop(columns='Unnamed: 2')
 
-        # Chama a função de categorização
-        df_final = self.categorizar(df_final)
+        # Calls the function Categorize
+        df_final = self.categorize(df_final)
 
         return df_final
     
@@ -59,10 +59,10 @@ class ScraperProducao():
         df['Produto'] = df['Produto'].astype(str).apply(
             lambda x: x.encode('latin1').decode('utf-8') if isinstance(x, str) else x
         )
-        return df  # <- Retornar o DataFrame inteiro
+        return df  # <- Entire DataFrame returned
 
     
-    def replace_quantidade(self, df):
+    def replace_quantity(self, df):
         df['Quantidade (L.)'] = df['Quantidade (L.)'].replace('-','0')
         return df['Quantidade (L.)'] 
 
@@ -78,11 +78,11 @@ class ScraperProducao():
         df['Quantidade (L.)'] = pd.to_numeric(df['Quantidade (L.)'], errors='coerce')
         return df['Quantidade (L.)'] 
     
-    def remover_nan(self, df):
+    def remove_nan(self, df):
         df = df.dropna(axis=0)
         return df
     
-    def remover_total(self, df):
+    def remove_total(self, df):
         df = df[df['Produto'] != 'Total']
         return df
     
@@ -91,17 +91,17 @@ class ScraperProducao():
         
     def exec(self):
         self.get_year()
-        df = self.table_producao()
+        df = self.production_table()
         df = self.encode_latin1(df)
-        df['Quantidade (L.)'] = self.replace_quantidade(df)
+        df['Quantidade (L.)'] = self.replace_quantity(df)
         df['Quantidade (L.)']  = self.column_to_numeric(df)
-        df = self.categorizar(df)
-        df = self.remover_categorias(df)
-        df = self.remover_nan(df)
-        df = self.remover_total(df)
+        df = self.categorize(df)
+        df = self.remove_categories(df)
+        df = self.remove_nan(df)
+        df = self.remove_total(df)
         self.save_df(df)
         return df
 
-run = ScraperProducao()
+run = ProductionScraper()
 run.exec()
-print('Processamento executado')
+print('Production executed.')

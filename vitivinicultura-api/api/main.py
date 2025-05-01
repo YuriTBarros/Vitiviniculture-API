@@ -7,7 +7,10 @@ from fastapi import FastAPI
 
 from api.core.config import settings
 from api.routes import auth 
+from database.db import init_db
 
+#Initiatializing database
+init_db()
 
 # Create FastAPI app instance
 app = FastAPI(

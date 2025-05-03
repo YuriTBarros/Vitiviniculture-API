@@ -7,6 +7,7 @@ from fastapi import FastAPI
 
 from api.core.config import settings
 from api.routes import auth 
+from api.routes import get_data
 from database.db import init_db
 
 #Initiatializing database
@@ -22,3 +23,4 @@ app = FastAPI(
 
 # Register routers
 app.include_router(auth.router)
+app.include_router(get_data.router)

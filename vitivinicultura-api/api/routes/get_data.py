@@ -1,28 +1,51 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query, Depends
+from fastapi.responses import JSONResponse
+from typing import  Type
 from api.services.scrapers_registry import scrapers_registry
+from api.schemas.schemas_registry import schemas_registry
+from api.core.security import get_current_user
 
-router = APIRouter(prefix="/data", tags=["data"]) #getting from csv, but we need to ajust it
+router = APIRouter(prefix="/data", tags=["data"]) 
 
 @router.get("/{category}", summary="Fetch viticulture data from Embrapa")
-def get_data_by_category(category: str):
+
+async def get_data_by_category(
+    category: str,    
+    limit: int = Query(100, description="Maximum number of results to return"),
+    offset: int = Query(0, description="Offset for pagination - Where to start in the list."),
+    user: dict = Depends(get_current_user)):
     """
-    Generic route that returns cleaned JSON data for a given category:
-    - production
-    - processing
-    - commercialization
-    - importation
+    Retrieve JSON-formatted vitiviniculture data for a given category.
+
+    Categories supported:
     - exportation
+    - importation
+    - processing
+    - production
+    - trade
+
+    Each category uses a registered scraper to extract and transform raw data
+    and an associated Pydantic schema to validate the returned structure.
+
+    Args:
+        category (str): The data category to retrieve.
+        limit (int): Max number of results (default: 100)
+        offset (int): Offset index for pagination (default: 0)
+        user (User): The authenticated user making the request (injected via dependency).
+    Returns:
+        JSONResponse: A list of records in JSON format.
     """
     scraper_class = scrapers_registry.get(category.lower())
+    schema_class: Type = schemas_registry.get(category)
 
-    if scraper_class is None:
-        raise HTTPException(status_code=404, detail="Invalid data category")
+    if not scraper_class or not schema_class:
+        raise HTTPException(status_code=404, detail=f"Category '{category}' not supported.")
+    try:
+        scraper = scraper_class()
+        raw_data = scraper.get_json()
+        raw_data = raw_data[offset:offset + limit]
+        validated_data = [schema_class(**item).dict() for item in raw_data]
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error processing data: {str(e)}")
 
-    scraper = scraper_class()
-    data = scraper.get_json() # CHANGE IF NECESSARY 
-    #considering that each scraper will have a method called get_json().
-
-    if not data:
-        raise HTTPException(status_code=503, detail="No data available or Embrapa unreachable")
-
-    return data
+    return JSONResponse(content=validated_data)

@@ -1,6 +1,8 @@
 import pandas as pd
 import requests
 from bs4 import BeautifulSoup
+from requests.exceptions import RequestException
+import os
 
 class ExportationScraper():
     def __init__(self):
@@ -8,12 +10,21 @@ class ExportationScraper():
         self.years = None
 
     def get_year(self):
-        response = requests.get(self.base_url + '?opcao=opt_06')
+        try:
+            response = requests.get(self.base_url + '?opcao=opt_06', timeout=10)
+            response.raise_for_status()
+        except RequestException as e:
+            print(f"[ERROR] Failed to connect to Embrapa: {e}")
+            self.years = []
+            return
+        
         soup = BeautifulSoup(response.content, 'html.parser')
         select_years = soup.find('input', {'class':'text_pesq'})
         self.years = [year for year in range(int(select_years['min']), int(select_years['max']) + 1)]
 
     def remove_categories(self, df):
+        if 'Países' not in df.columns:
+            return df
         mask = df['Países'].apply(lambda x: isinstance(x, str) and not x.strip().isupper())
         return df[mask].reset_index(drop=True)
     
@@ -30,7 +41,9 @@ class ExportationScraper():
                     dfs.append(df_year)
                 except Exception as e:
                     print(f"Error in {year}, suboption {suboption}: {e}")
-        
+       
+        if not dfs:
+            return pd.DataFrame()  # Return empty DataFrame safely
         df_final = pd.concat(dfs, ignore_index=True)
 
         # Remove  columns 'Unnamed: 2' and / or 'Sem definiÃ§Ã£o' if required 
@@ -50,33 +63,23 @@ class ExportationScraper():
             except (UnicodeEncodeError, UnicodeDecodeError):
                 return x  # if fails, original is returned
 
-        df['Países'] = df['Países'].astype(str).apply(try_fix_encoding)
+        if 'Países' in df.columns:
+            df['Países'] = df['Países'].astype(str).apply(try_fix_encoding)
         return df
 
-    def replace_quantity(self, df):
-        df['Quantidade (Kg)'] = df['Quantidade (Kg)'].replace('-','0')
-        df['Valor (US$)'] = df['Valor (US$)'].replace('-','0')
-        return df['Quantidade (Kg)'], df['Valor (US$)']
-
-    def column_to_numeric(self, df):
-        df['Quantidade (Kg)'] = (
-            df['Quantidade (Kg)']
-            .astype(str)
-            .str.replace('.', '', regex=False)
-            .str.replace('-', '', regex=False)
-            .str.strip()
-        )
-        df['Quantidade (Kg)'] = pd.to_numeric(df['Quantidade (Kg)'], errors='coerce')
-
-        df['Valor (US$)'] = (
-            df['Valor (US$)']
-            .astype(str)
-            .str.replace('.', '', regex=False)
-            .str.replace('-', '', regex=False)
-            .str.strip()
-        )
-        df['Valor (US$)'] = pd.to_numeric(df['Valor (US$)'], errors='coerce')
-        return df['Quantidade (Kg)'], df['Valor (US$)'] 
+    def clean_quantities_and_values(self, df):
+        for col in ['Quantidade (Kg)', 'Valor (US$)']:
+            if col in df.columns:
+                df[col] = df[col].replace('-', '0')
+                df[col] = (
+                    df[col]
+                    .astype(str)
+                    .str.replace('.', '', regex=False)
+                    .str.replace('-', '', regex=False)
+                    .str.strip()
+                )
+                df[col] = pd.to_numeric(df[col], errors='coerce')
+        return df 
     
     def remove_nan(self, df):
         df = df.dropna(axis=0)
@@ -96,24 +99,41 @@ class ExportationScraper():
         }
         df['subopcao'] = df['subopcao'].map(map)
         return df
-
+    
     def save_df(self, df):
-        df.to_csv(r'vitivinicultura-api\data\tabela_exportacao.csv', index=False)
+        path = os.path.join('vitivinicultura-api', 'data')
+        os.makedirs(path, exist_ok=True) 
+        filepath = os.path.join(path, 'tabela_exportacao.csv')
+        df.to_csv(filepath, index=False)
 
-    def exec(self):
-        self.get_year()
-        df = self.exportation_table()
-        df = self.encode_latin1(df)
-        df['Quantidade (Kg)'], df['Valor (US$)'] = self.replace_quantity(df)
-        df['Quantidade (Kg)'], df['Valor (US$)'] = self.column_to_numeric(df)
-        df = self.remove_categories(df)
-        df = self.remove_nan(df)
-        df = self.remove_total(df)
-        df = self.suboptions_labeling(df)
-        self.save_df(df)
-        return df
+    def get_json(self):
+        """
+        Attempts to fetch and clean importation data from Embrapa.
+        Falls back to loading local CSV if scraping fails.
 
+        Returns:
+            list[dict]: JSON-serializable data.
+        """
+        try:
+            self.get_year()
+            df = self.exportation_table()
+            if df.empty:
+                return []
+            df = self.encode_latin1(df)
+            df = self.clean_quantities_and_values(df)
+            df = self.remove_categories(df)
+            df = self.remove_nan(df)
+            df = self.remove_total(df)
+            df = self.suboptions_labeling(df)
+            self.save_df(df)
 
-run = ExportationScraper()
-run.exec()
-print('Exportation executed.')
+            return df.to_dict(orient="records")
+
+        except Exception as e:
+            print(f"[WARN] Scraper failed. Falling back to local CSV. Reason: {e}")
+            try:
+                df_fallback = pd.read_csv("vitivinicultura-api/data/tabela_exportacao.csv")
+                return df_fallback.to_dict(orient="records")
+            except Exception as fallback_error:
+                print(f"[ERROR] Failed to load fallback CSV: {fallback_error}")
+                return []

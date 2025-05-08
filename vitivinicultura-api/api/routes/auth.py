@@ -17,15 +17,6 @@ from database.models import User
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
-#Temporary in-memory user store for testing
-#hashed = hash_password("secret123")
-#fake_users_db = {
-#    "yuri": {
-#        "username": "yuri",
-#        "hashed_password": hashed
-#    }
-#}
-
 def get_db():
     """
     Dependency that provides a database session.

@@ -1,6 +1,8 @@
 import pandas as pd
 import requests
 from bs4 import BeautifulSoup
+from requests.exceptions import RequestException
+import os
 
 class ProductionScraper():
     def __init__(self):
@@ -8,7 +10,14 @@ class ProductionScraper():
         self.years = None
 
     def get_year(self):
-        response = requests.get(self.base_url + '?opcao=opt_02')
+        try:
+            response = requests.get(self.base_url + '?opcao=opt_02')
+            response.raise_for_status()
+        except RequestException as e:
+            print(f"[ERROR] Failed to connect to Embrapa: {e}")
+            self.years = []
+            return           
+        
         soup = BeautifulSoup(response.content, 'html.parser')
         select_years = soup.find('input', {'class':'text_pesq'})
         self.years = [year for year in range(int(select_years['min']), int(select_years['max']) + 1)]
@@ -30,6 +39,8 @@ class ProductionScraper():
 
     
     def remove_categories(self, df):
+        if 'Produto' not in df.columns:
+            return df
         mask = df['Produto'].apply(lambda x: isinstance(x, str) and not x.strip().isupper())
         return df[mask].reset_index(drop=True)
     
@@ -43,7 +54,8 @@ class ProductionScraper():
                 dfs.append(df_year)
             except Exception as e:
                 print(f"Erro in {year}: {e}")
-        
+        if not dfs:
+            return pd.DataFrame()
         df_final = pd.concat(dfs, ignore_index=True)
 
         #  Remove column 'Unnamed: 2' if necessary.
@@ -56,28 +68,31 @@ class ProductionScraper():
         return df_final
     
     def encode_latin1(self, df):
-        df['Produto'] = df['Produto'].astype(str).apply(
-            lambda x: x.encode('latin1').decode('utf-8') if isinstance(x, str) else x
-        )
-        return df  # <- Entire DataFrame returned
+        def try_fix_encoding(x):
+            if not isinstance(x, str):
+                return x
+            try:
+                return x.encode('latin1').decode('utf-8')
+            except (UnicodeEncodeError, UnicodeDecodeError):
+                return x
 
+        if 'Produto' in df.columns:
+            df['Produto'] = df['Produto'].astype(str).apply(try_fix_encoding)
+        return df
     
-    def replace_quantity(self, df):
-        df['Quantidade (L.)'] = df['Quantidade (L.)'].replace('-','0')
-        return df['Quantidade (L.)'] 
+    def clean_quantities(self, df):
+        if 'Quantidade (L.)' in df.columns:
+            df['Quantidade (L.)'] = df['Quantidade (L.)'].replace('-', '0')
+            df['Quantidade (L.)'] = (
+                df['Quantidade (L.)']
+                .astype(str)
+                .str.replace('.', '', regex=False)
+                .str.replace('-', '', regex=False)
+                .str.strip()
+            )
+            df['Quantidade (L.)'] = pd.to_numeric(df['Quantidade (L.)'], errors='coerce')
+        return df
 
-    def column_to_numeric(self, df):
-        df['Quantidade (L.)'] = (
-            df['Quantidade (L.)']
-            .astype(str)
-            .str.replace('.', '', regex=False)
-            .str.replace('-', '', regex=False)
-            .str.strip()
-        )
-
-        df['Quantidade (L.)'] = pd.to_numeric(df['Quantidade (L.)'], errors='coerce')
-        return df['Quantidade (L.)'] 
-    
     def remove_nan(self, df):
         df = df.dropna(axis=0)
         return df
@@ -87,21 +102,39 @@ class ProductionScraper():
         return df
     
     def save_df(self, df):
-        df.to_csv(r'vitivinicultura-api\data\tabela_producao.csv', index=False)
-        
-    def exec(self):
-        self.get_year()
-        df = self.production_table()
-        df = self.encode_latin1(df)
-        df['Quantidade (L.)'] = self.replace_quantity(df)
-        df['Quantidade (L.)']  = self.column_to_numeric(df)
-        df = self.categorize(df)
-        df = self.remove_categories(df)
-        df = self.remove_nan(df)
-        df = self.remove_total(df)
-        self.save_df(df)
-        return df
+        path = os.path.join('vitivinicultura-api', 'data')
+        os.makedirs(path, exist_ok=True) 
+        filepath = os.path.join(path, 'tabela_producao.csv')
+        df.to_csv(filepath, index=False)
 
-run = ProductionScraper()
-run.exec()
-print('Production executed.')
+    def get_json(self):
+        """
+        Attempts to fetch and clean importation data from Embrapa.
+        Falls back to loading local CSV if scraping fails.
+
+        Returns:
+            list[dict]: JSON-serializable data.
+        """
+        try:
+            self.get_year()
+            df = self.production_table()
+            if df.empty:
+                return []
+            df = self.encode_latin1(df)
+            df = self.clean_quantities(df)
+            df = self.categorize(df)    
+            df = self.remove_categories(df)
+            df = self.remove_nan(df)
+            df = self.remove_total(df)
+            self.save_df(df)
+
+            return df.to_dict(orient="records")
+
+        except Exception as e:
+            print(f"[WARN] Scraper failed. Falling back to local CSV. Reason: {e}")
+            try:
+                df_fallback = pd.read_csv("vitivinicultura-api/data/tabela_producao.csv")
+                return df_fallback.to_dict(orient="records")
+            except Exception as fallback_error:
+                print(f"[ERROR] Failed to load fallback CSV: {fallback_error}")
+                return []    

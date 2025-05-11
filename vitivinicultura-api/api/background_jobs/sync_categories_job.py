@@ -7,9 +7,9 @@ async def periodic_sync_job():
     while True:
         try:
             print("[SYNC] Starting exportation sync...")
-            category_service.sync("exportation")
-            # print("[SYNC] Starting importation sync...")
-            # category_service.sync("importation")
+            await category_service.sync("exportation")
+            print("[SYNC] Starting importation sync...")
+            await category_service.sync("importation")
             # print("[SYNC] Starting processing sync...")
             # category_service.sync("processing")
             # print("[SYNC] Starting production sync...")

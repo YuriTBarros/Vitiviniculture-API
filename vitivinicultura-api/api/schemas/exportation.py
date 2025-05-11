@@ -1,6 +1,7 @@
 from pydantic import BaseModel, Field
 from typing import Optional
 
+
 class ExportationItem(BaseModel):
     pais: str = Field(..., alias="Países")
     quantidade_kg: Optional[float] = Field(None, alias="Quantidade (Kg)")

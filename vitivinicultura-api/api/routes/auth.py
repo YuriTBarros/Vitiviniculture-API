@@ -8,7 +8,11 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
 
-from api.core.security import verify_password, create_access_token,hash_password
+from api.core.security import (
+    verify_password,
+    create_access_token,
+    hash_password,
+)
 from api.core.config import settings
 from api.models.user import UserCreate
 from database.db import SessionLocal
@@ -16,6 +20,7 @@ from database.models import User
 
 
 router = APIRouter(prefix="/auth", tags=["auth"])
+
 
 def get_db():
     """
@@ -29,6 +34,7 @@ def get_db():
         yield db
     finally:
         db.close()
+
 
 @router.post("/register", status_code=201)
 def register(user: UserCreate, db: Session = Depends(get_db)):
@@ -45,13 +51,16 @@ def register(user: UserCreate, db: Session = Depends(get_db)):
     Returns:
         dict: A confirmation message with the new user's username and ID.
     """
-    existing_user = db.query(User).filter(User.username == user.username).first()
+    existing_user = (
+        db.query(User).filter(User.username == user.username).first()
+    )
     if existing_user:
-        raise HTTPException(status_code=400, detail="Username already registered")
+        raise HTTPException(
+            status_code=400, detail="Username already registered"
+        )
 
     new_user = User(
-        username=user.username,
-        hashed_password=hash_password(user.password)
+        username=user.username, hashed_password=hash_password(user.password)
     )
 
     db.add(new_user)
@@ -60,8 +69,12 @@ def register(user: UserCreate, db: Session = Depends(get_db)):
 
     return {"username": new_user.username, "id": new_user.id}
 
+
 @router.post("/login")
-def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+def login(
+    form_data: OAuth2PasswordRequestForm = Depends(),
+    db: Session = Depends(get_db),
+):
     """
     Authenticates a user using form credentials against the database.
 
@@ -78,14 +91,18 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
     user = db.query(User).filter(User.username == form_data.username).first()
 
     if not user:
-        raise HTTPException(status_code=401, detail="Invalid username or password")
+        raise HTTPException(
+            status_code=401, detail="Invalid username or password"
+        )
 
     if not verify_password(form_data.password, user.hashed_password):
-        raise HTTPException(status_code=401, detail="Invalid username or password")
+        raise HTTPException(
+            status_code=401, detail="Invalid username or password"
+        )
 
     access_token = create_access_token(
         data={"sub": user.username},
-        expires_delta=settings.ACCESS_TOKEN_EXPIRE_MINUTES
+        expires_delta=settings.ACCESS_TOKEN_EXPIRE_MINUTES,
     )
 
     return {"access_token": access_token, "token_type": "bearer"}

@@ -6,11 +6,11 @@ Handles configuration, route registration, and app startup.
 from fastapi import FastAPI
 
 from api.core.config import settings
-from api.routes import auth 
+from api.routes import auth
 from api.routes import get_data
 from database.db import init_db
 
-#Initiatializing database
+# Initiatializing database
 init_db()
 
 # Create FastAPI app instance
@@ -18,7 +18,7 @@ app = FastAPI(
     title="VitiBrasil API",
     description="Public API for vitiviniculture data",
     version="1.0.0",
-    debug=settings.DEBUG
+    debug=settings.DEBUG,
 )
 
 # Register routers

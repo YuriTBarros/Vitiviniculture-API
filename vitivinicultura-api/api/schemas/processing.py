@@ -1,6 +1,7 @@
 from pydantic import BaseModel, Field
 from typing import Optional
 
+
 class ProcessingItem(BaseModel):
     cultivo: str = Field(..., alias="Cultivar")
     quantidade_kg: Optional[float] = Field(None, alias="Quantidade (Kg)")

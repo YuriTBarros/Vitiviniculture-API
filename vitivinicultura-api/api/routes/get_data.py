@@ -1,19 +1,22 @@
 from fastapi import APIRouter, HTTPException, Query, Depends
 from fastapi.responses import JSONResponse
-from typing import  Type
+from typing import Type
 from api.services.scrapers_registry import scrapers_registry
 from api.schemas.schemas_registry import schemas_registry
 from api.core.security import get_current_user
 
-router = APIRouter(prefix="/data", tags=["data"]) 
+router = APIRouter(prefix="/data", tags=["data"])
+
 
 @router.get("/{category}", summary="Fetch viticulture data from Embrapa")
-
 async def get_data_by_category(
-    category: str,    
+    category: str,
     limit: int = Query(100, description="Maximum number of results to return"),
-    offset: int = Query(0, description="Offset for pagination - Where to start in the list."),
-    user: dict = Depends(get_current_user)):
+    offset: int = Query(
+        0, description="Offset for pagination - Where to start in the list."
+    ),
+    user: dict = Depends(get_current_user),
+):
     """
     Retrieve JSON-formatted vitiviniculture data for a given category.
 
@@ -39,13 +42,17 @@ async def get_data_by_category(
     schema_class: Type = schemas_registry.get(category)
 
     if not scraper_class or not schema_class:
-        raise HTTPException(status_code=404, detail=f"Category '{category}' not supported.")
+        raise HTTPException(
+            status_code=404, detail=f"Category '{category}' not supported."
+        )
     try:
         scraper = scraper_class()
         raw_data = scraper.get_json()
-        raw_data = raw_data[offset:offset + limit]
+        raw_data = raw_data[offset : offset + limit]
         validated_data = [schema_class(**item).dict() for item in raw_data]
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error processing data: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Error processing data: {str(e)}"
+        )
 
     return JSONResponse(content=validated_data)

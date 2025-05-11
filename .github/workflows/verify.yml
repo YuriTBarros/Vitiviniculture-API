@@ -23,10 +23,12 @@ jobs:
       - name: Create and activate virtualenv
         run: |
           cd vitivinicultura-api
+          make venv
+
+      - name: Install dependencies
+        run: |
+          cd vitivinicultura-api
           make install
-          python -m venv .venv
-          .venv/bin/pip install --upgrade pip
-          .venv/bin/pip install -r requirements.txt
 
       - name: Run lint
         run: |

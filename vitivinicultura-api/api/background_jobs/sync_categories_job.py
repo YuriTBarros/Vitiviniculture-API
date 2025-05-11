@@ -1,0 +1,22 @@
+import asyncio
+
+from api.services import category_service
+
+
+async def periodic_sync_job():
+    while True:
+        try:
+            print("[SYNC] Starting exportation sync...")
+            category_service.sync("exportation")
+            # print("[SYNC] Starting importation sync...")
+            # category_service.sync("importation")
+            # print("[SYNC] Starting processing sync...")
+            # category_service.sync("processing")
+            # print("[SYNC] Starting production sync...")
+            # category_service.sync("production")
+            # print("[SYNC] Starting trade sync...")
+            # category_service.sync("trade")
+        except Exception as e:
+            print(f"[SYNC-ERROR] Sync failed: {e}")
+        print("[SYNC] Waiting 10 minutes before next sync...")
+        await asyncio.sleep(600)

@@ -31,10 +31,18 @@ def sync_category(
         JSONResponse: Status or data from the scraper service.
 
     Raises:
-        HTTPException: 404 if scraper for the category does not exist.
+        HTTPException:
+            - 404 if scraper for the category does not exist.
+            - 503 if the sync process fails.
     """
     try:
-        return category_service.sync(category)
+        response = category_service.sync(category)
+        if response.status == "fail":
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="Failed to sync category data. Please try again later.",
+            )
+        return response
     except ScraperNotFoundException as e:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

@@ -8,15 +8,19 @@ async def periodic_sync_job():
         try:
             print("[SYNC] Starting exportation sync...")
             await category_service.sync("exportation")
+
             print("[SYNC] Starting importation sync...")
             await category_service.sync("importation")
+
             # print("[SYNC] Starting processing sync...")
-            # category_service.sync("processing")
+            # await category_service.sync("processing")
+
             # print("[SYNC] Starting production sync...")
-            # category_service.sync("production")
+            # await category_service.sync("production")
+
             # print("[SYNC] Starting trade sync...")
-            # category_service.sync("trade")
+            # await category_service.sync("trade")
         except Exception as e:
             print(f"[SYNC-ERROR] Sync failed: {e}")
         print("[SYNC] Waiting 10 minutes before next sync...")
-        await asyncio.sleep(600)
+        await asyncio.sleep(600)  # 10 minutes

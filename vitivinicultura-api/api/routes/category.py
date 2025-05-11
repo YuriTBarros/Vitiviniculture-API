@@ -1,5 +1,14 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Request
+from fastapi import (
+    APIRouter,
+    BackgroundTasks,
+    Depends,
+    HTTPException,
+    status,
+    Request,
+)
 from fastapi.responses import JSONResponse, PlainTextResponse
+
+from api.models.category import SyncResponse
 
 from api.core.security import get_current_user
 from api.exceptions.scraper_not_found_exception import ScraperNotFoundException
@@ -8,15 +17,21 @@ from api.services import category_service
 router = APIRouter(prefix="/category", tags=["category"])
 
 
-@router.post("/{category}/sync", summary="Fetch viticulture data from Embrapa")
-def sync_category(
-    category: str, user: str = Depends(get_current_user)
-) -> JSONResponse:
+@router.post(
+    "/{category}/sync",
+    summary="Fetch viticulture data from Embrapa",
+    status_code=status.HTTP_202_ACCEPTED,
+)
+async def sync_category(
+    category: str,
+    background_tasks: BackgroundTasks,
+    user: str = Depends(get_current_user),
+) -> SyncResponse:
     """
-    Trigger the scraper to fetch and cache new viticulture data for a
-        given category.
+    Triggers the scraper to fetch and store new viticulture data for a specific
+        category asynchronously.
 
-    Acceptable categories:
+    Valid categories:
         - exportation
         - importation
         - processing
@@ -24,25 +39,21 @@ def sync_category(
         - trade
 
     Args:
-        category (str): Category of viticulture data.
+        category (str): The viticulture data category.
+        background_tasks (BackgroundTasks): Used to run the sync process in
+            the background.
         user (str): Authenticated user (injected via Depends).
 
     Returns:
-        JSONResponse: Status or data from the scraper service.
+        SyncResponse: Confirmation that the sync process has been initiated.
 
     Raises:
         HTTPException:
-            - 404 if scraper for the category does not exist.
-            - 503 if the sync process fails.
+            - 404 if no scraper exists for the specified category.
     """
     try:
-        response = category_service.sync(category)
-        if response.status == "fail":
-            raise HTTPException(
-                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-                detail="Failed to sync category data. Please try again later.",
-            )
-        return response
+        background_tasks.add_task(category_service.sync, category)
+        return SyncResponse(status="started")
     except ScraperNotFoundException as e:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

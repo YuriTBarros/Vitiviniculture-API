@@ -1,3 +1,4 @@
+import asyncio
 import os
 import pandas as pd
 
@@ -21,7 +22,7 @@ __scrapers_registry = {
 }
 
 
-def sync(category: str) -> SyncResponse:
+async def sync(category: str) -> SyncResponse:
     """
     Executes the scraper for the specified category, caches the data locally,
     and returns the sync status.
@@ -30,13 +31,16 @@ def sync(category: str) -> SyncResponse:
         category (str): Name of the data category (e.g., "exportation").
 
     Returns:
-        SyncResponse: An object indicating "success" or "fail".
+        SyncResponse: An object indicating "started".
     """
     scraper_class = _get_category_class(category)
-    sync_status = scraper_class.sync(
-        settings.EMBRAPA_URL, settings.LOCAL_CACHE_FOLDER, f"table_{category}"
+    await asyncio.to_thread(
+        scraper_class.sync,
+        settings.EMBRAPA_URL,
+        settings.LOCAL_CACHE_FOLDER,
+        f"table_{category}",
     )
-    return SyncResponse(status="success" if sync_status else "fail")
+    return SyncResponse(status="started")
 
 
 def get_csv(category: str) -> str:

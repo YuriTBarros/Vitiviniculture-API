@@ -1,0 +1,34 @@
+name: Verify
+
+on:
+  push:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: 'latest'
+
+      - name: Verify Python version
+        run: |
+          python --version
+
+      - name: Create and activate virtualenv
+        run: |
+          cd vitivinicultura-api
+          make install
+          python -m venv .venv
+          .venv/bin/pip install --upgrade pip
+          .venv/bin/pip install -r requirements.txt
+
+      - name: Run lint
+        run: |
+          cd vitivinicultura-api
+          make lint

@@ -7,7 +7,7 @@ from fastapi import FastAPI
 
 from api.core.config import settings
 from api.routes import auth
-from api.routes import get_data
+from api.routes import category
 from database.db import init_db
 
 app = FastAPI(
@@ -25,4 +25,4 @@ async def startup_event():
 
 # Register routers
 app.include_router(auth.router)
-app.include_router(get_data.router)
+app.include_router(category.router)

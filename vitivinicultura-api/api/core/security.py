@@ -1,5 +1,6 @@
 """
-Security utilities for password hashing, token generation, and user authentication.
+Security utilities for password hashing, token generation, and user
+    authentication.
 ---
 Uses:
 - passlib (bcrypt) for secure password hashing and verification.
@@ -66,8 +67,10 @@ def create_access_token(
     Create a signed JWT access token.
     ---
     Arguments:
-        data (dict): The payload data to include in the token (e.g., {"sub": username}).
-        expires_delta (Optional[timedelta]): Optional expiration time for the token.
+        data (dict): The payload data to include in the token
+            (e.g., {"sub": username}).
+        expires_delta (Optional[timedelta]): Optional expiration time for the
+            token.
 
     Returns:
         str: A JWT string.
@@ -91,7 +94,8 @@ class TokenData(BaseModel):
     Pydantic model for holding token payload data.
     ---
     Attributes:
-        username (Optional[str]): The 'sub' field from the JWT, representing the user.
+        username (Optional[str]): The 'sub' field from the JWT,
+            representing the user.
     """
 
     username: Optional[str] = None

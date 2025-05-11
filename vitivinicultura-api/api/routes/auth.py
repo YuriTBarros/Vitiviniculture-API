@@ -1,6 +1,6 @@
 """
-Authentication and user creation route: receives username and password, create it, validates credentials,
-and returns a JWT token if successful.
+Authentication and user creation route: receives username and password,
+create it, validates credentials, and returns a JWT token if successful.
 """
 
 from fastapi import APIRouter, Depends, HTTPException

@@ -43,7 +43,10 @@ class ExportationScraper:
         for year in self.years:
             for subop in range(1, 5):
                 suboption = f"subopt_0{subop}"
-                url = f"{self.base_url}?subopcao={suboption}&opcao=opt_06&ano={year}"
+                url = (
+                    f"{self.base_url}?subopcao={suboption}"
+                    f"&opcao=opt_06&ano={year}"
+                )
                 try:
                     df_year = pd.read_html(url)[3]
                     df_year["ano"] = year
@@ -145,7 +148,8 @@ class ExportationScraper:
 
         except Exception as e:
             print(
-                f"[WARN] Scraper failed. Falling back to local CSV. Reason: {e}"
+                f"[WARN] Scraper failed. Falling back to local CSV. "
+                f"Reason: {e}"
             )
             try:
                 df_fallback = pd.read_csv(

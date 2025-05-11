@@ -34,11 +34,11 @@ class TradeScraper:
         for product in df["Produto"]:
             product_str = str(product).strip()
 
-            if product_str.isupper() and product_str != (
-                "NAN"
-                or "VINHO FRIZANTE"
-                or "VINHO ORGÂNICO"
-                or "SUCO DE UVAS CONCENTRADO"
+            if product_str.isupper() and product_str not in (
+                "NAN",
+                "VINHO FRIZANTE",
+                "VINHO ORGÂNICO",
+                "SUCO DE UVAS CONCENTRADO",
             ):
                 current_category = product_str
 
@@ -47,18 +47,21 @@ class TradeScraper:
         df["Categoria"] = categories
         return df
 
-    def remove_categories(self, df):
-        excluded_products = [
-            "VINHO FRIZANTE",
-            "VINHO ORGÂNICO",
-            "SUCO DE UVAS CONCENTRADO",
-        ]
-        mask = df["Produto"].apply(
-            lambda x: isinstance(x, str)
-            and not x.strip().isupper()
-            or x.strip() in excluded_products
-        )
-        return df[mask].reset_index(drop=True)
+        def is_valid_produto(x, excluded_products):
+            return (isinstance(x, str) and not x.strip().isupper()) or (
+                x.strip() in excluded_products
+            )
+
+        def remove_categories(self, df):
+            excluded_products = [
+                "VINHO FRIZANTE",
+                "VINHO ORGÂNICO",
+                "SUCO DE UVAS CONCENTRADO",
+            ]
+            mask = df["Produto"].apply(
+                lambda x: is_valid_produto(x, excluded_products)
+            )
+            return df[mask].reset_index(drop=True)
 
     def trade_table(self):
         dfs = []
@@ -153,7 +156,8 @@ class TradeScraper:
 
         except Exception as e:
             print(
-                f"[WARN] Scraper failed. Falling back to local CSV. Reason: {e}"
+                f"[WARN] Scraper failed. Falling back to local CSV. "
+                f"Reason: {e}"
             )
             try:
                 df_fallback = pd.read_csv(

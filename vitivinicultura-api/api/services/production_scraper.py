@@ -141,7 +141,8 @@ class ProductionScraper:
 
         except Exception as e:
             print(
-                f"[WARN] Scraper failed. Falling back to local CSV. Reason: {e}"
+                f"[WARN] Scraper failed. Falling back to local CSV. "
+                f"Reason: {e}"
             )
             try:
                 df_fallback = pd.read_csv(

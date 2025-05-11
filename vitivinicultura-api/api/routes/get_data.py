@@ -34,7 +34,8 @@ async def get_data_by_category(
         category (str): The data category to retrieve.
         limit (int): Max number of results (default: 100)
         offset (int): Offset index for pagination (default: 0)
-        user (User): The authenticated user making the request (injected via dependency).
+        user (User): The authenticated user making the request
+            (injected via dependency).
     Returns:
         JSONResponse: A list of records in JSON format.
     """

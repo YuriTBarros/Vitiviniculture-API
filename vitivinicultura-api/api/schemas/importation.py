@@ -10,6 +10,6 @@ class ImportationItem(BaseModel):
     subopcao: Optional[str]
 
     class Config:
-        allow_population_by_field_name = True
         populate_by_name = True
-        orm_mode = True
+        from_attributes = True
+        validate_by_name = True

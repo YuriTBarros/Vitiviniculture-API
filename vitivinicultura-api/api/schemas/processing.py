@@ -11,6 +11,6 @@ class ProcessingItem(BaseModel):
     categoria: str = Field(..., alias="Categoria")
 
     class Config:
-        allow_population_by_field_name = True
         populate_by_name = True
-        orm_mode = True
+        from_attributes = True
+        validate_by_name = True

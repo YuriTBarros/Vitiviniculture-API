@@ -10,16 +10,18 @@ from api.routes import auth
 from api.routes import get_data
 from database.db import init_db
 
-# Initiatializing database
-init_db()
-
-# Create FastAPI app instance
 app = FastAPI(
-    title="VitiBrasil API",
+    title="VitiViniculture API",
     description="Public API for vitiviniculture data",
     version="1.0.0",
     debug=settings.DEBUG,
 )
+
+
+@app.on_event("startup")
+async def startup_event():
+    init_db()
+
 
 # Register routers
 app.include_router(auth.router)

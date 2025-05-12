@@ -16,8 +16,8 @@ from api.services.scrapers.trade_scraper import TradeScraper
 __scrapers_registry = {
     "exportation": ExportationScraper,
     "importation": ImportationScraper,
-    "production": ProductionScraper,
     "processing": ProcessingScraper,
+    "production": ProductionScraper,
     "trade": TradeScraper,
 }
 

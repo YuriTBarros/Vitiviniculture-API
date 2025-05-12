@@ -28,7 +28,6 @@ class ExportationScraper:
             if df.empty:
                 return False
 
-            # Processing pipeline
             df = self._encode_latin1(df)
             df = self._clean_quantities_and_values(df)
             df = self._remove_categories(df)

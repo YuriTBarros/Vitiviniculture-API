@@ -134,9 +134,10 @@ def get_category(
     try:
         accept = request.headers.get("accept", "")
         referer = request.headers.get("referer", "")
-        
-        # Swagger UI often struggles with very large datasets. 
-        # Therefore, we set a default offset of 1 to avoid loading too much data at once.
+
+        # Swagger UI often struggles with very large datasets.
+        # Therefore, we set a default offset of 1 to avoid
+        #   loading too much data at once.
         if "/docs" in referer and offset is None:
             offset = 1
 

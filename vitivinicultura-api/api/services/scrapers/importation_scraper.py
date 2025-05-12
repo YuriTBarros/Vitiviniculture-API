@@ -24,23 +24,19 @@ class ImportationScraper:
                 False otherwise.
         """
         try:
-            # Retrieves the available years for scraping
             self._get_year(base_url)
-            # Retrieves the importation table
             df = self._importation_table(base_url)
             if df.empty:
                 return False
 
-            # Performs a series of transformations on the data
             df = self._encode_latin1(df)
             df = self._clean_quantities_and_values(df)
             df = self._remove_categories(df)
             df = self._remove_nan(df)
             df = self._remove_total(df)
             df = self._suboptions_labeling(df)
-
-            # Saves the cleaned data in files
             self._save_df(df, file_path, file_name)
+
             return True
 
         except Exception as e:

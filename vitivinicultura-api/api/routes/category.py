@@ -1,14 +1,16 @@
+from typing import Optional
 from fastapi import (
     APIRouter,
     BackgroundTasks,
     Depends,
     HTTPException,
     status,
+    Query,
     Request,
 )
 from fastapi.responses import JSONResponse, PlainTextResponse
 
-from api.models.category import SyncResponse
+from api.models.category import CategoryEnum, SyncResponse
 
 from api.core.security import get_current_user
 from api.exceptions.scraper_not_found_exception import ScraperNotFoundException
@@ -19,11 +21,11 @@ router = APIRouter(prefix="/category", tags=["category"])
 
 @router.post(
     "/{category}/sync",
-    summary="Fetch viticulture data from Embrapa",
+    summary="Fetch viticulture data from Embrapa and update the cache",
     status_code=status.HTTP_202_ACCEPTED,
 )
 async def sync_category(
-    category: str,
+    category: CategoryEnum,
     background_tasks: BackgroundTasks,
     user: str = Depends(get_current_user),
 ) -> SyncResponse:
@@ -39,7 +41,7 @@ async def sync_category(
         - trade
 
     Args:
-        category (str): The viticulture data category.
+        category (CategoryEnum): The viticulture data category.
         background_tasks (BackgroundTasks): Used to run the sync process in
             the background.
         user (str): Authenticated user (injected via Depends).
@@ -52,7 +54,7 @@ async def sync_category(
             - 404 if no scraper exists for the specified category.
     """
     try:
-        background_tasks.add_task(category_service.sync, category)
+        background_tasks.add_task(category_service.sync, category.value)
         return SyncResponse(status="started")
     except ScraperNotFoundException as e:
         raise HTTPException(
@@ -61,11 +63,45 @@ async def sync_category(
         )
 
 
-@router.get("/{category}", summary="Fetch viticulture data from cached data")
+@router.get(
+    "/{category}",
+    summary="Fetch viticulture data from cached data",
+    responses={
+        200: {
+            "description": "Successful request, data returned",
+            "content": {
+                "application/json": {
+                    "example": [
+                        {
+                            "Produto": "Tinto",
+                            "Quantidade (L.)": 174224052,
+                            "ano": 1970,
+                            "Categoria": "VINHO DE MESA",
+                        },
+                    ]
+                },
+                "text/csv": {
+                    "example": (
+                        "Produto,Quantidade (L.),ano,Categoria\n"
+                        "Tinto,174224052.0,1970,VINHO DE MESA\n"
+                    )
+                },
+            },
+        }
+    },
+)
 def get_category(
-    category: str,
+    category: CategoryEnum,
     request: Request,
     user: str = Depends(get_current_user),
+    offset: Optional[int] = Query(
+        None, ge=0, description="Number of items to skip (optional)"
+    ),
+    limit: Optional[int] = Query(
+        None,
+        ge=1,
+        description="Max number of items to return (optional)",
+    ),
 ):
     """
     Return cached viticulture data in the format requested by the client
@@ -83,7 +119,7 @@ def get_category(
         - text/csv
 
     Args:
-        category (str): Category of viticulture data.
+        category (CategoryEnum): Category of viticulture data.
         request (Request): FastAPI request object (used to inspect headers).
         user (str): Authenticated user.
 
@@ -97,15 +133,26 @@ def get_category(
     """
     try:
         accept = request.headers.get("accept", "")
+        referer = request.headers.get("referer", "")
+
+        # Swagger UI often struggles with very large datasets.
+        # Therefore, we set a default offset of 1 to avoid
+        #   loading too much data at once.
+        if "/docs" in referer and offset is None:
+            offset = 1
 
         if "text/csv" in accept:
-            csv_content = category_service.get_csv(category)
+            csv_content = category_service.get_csv(
+                category.value, offset=offset, limit=limit
+            )
             return PlainTextResponse(
                 content=csv_content, media_type="text/csv"
             )
 
         elif "application/json" in accept or "*/*" in accept or not accept:
-            json_content = category_service.get_json(category)
+            json_content = category_service.get_json(
+                category.value, offset=offset, limit=limit
+            )
             return JSONResponse(content=json_content)
 
         else:

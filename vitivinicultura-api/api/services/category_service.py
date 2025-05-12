@@ -1,6 +1,7 @@
 import asyncio
 import os
 import pandas as pd
+from typing import Optional
 
 from api.core.config import settings
 from api.exceptions.scraper_not_found_exception import ScraperNotFoundException
@@ -43,43 +44,80 @@ async def sync(category: str) -> SyncResponse:
     return SyncResponse(status="started")
 
 
-def get_csv(category: str) -> str:
+def get_csv(
+    category: str, offset: Optional[int] = None, limit: Optional[int] = None
+) -> str:
     """
-    Reads and returns the cached CSV content for the given category.
+    Reads the cached CSV file for the given category and returns
+    its paginated content as a CSV string.
+
+    If offset and limit are not provided, returns the entire dataset.
 
     Args:
         category (str): Name of the data category.
+        offset (int, optional): Number of items to skip. Default is 0.
+        limit (int, optional): Maximum number of items to return.
+            Default is 100.
 
     Returns:
-        str: Raw CSV content as a string.
+        str: Paginated CSV content or full dataset if no pagination
+            is requested.
     """
-    _get_category_class(category)  # Validate category
+    _get_category_class(category)
+
     filepath = os.path.join(
         settings.LOCAL_CACHE_FOLDER, f"table_{category}.csv"
     )
+    df = pd.read_csv(filepath)
 
-    with open(filepath, "r", encoding="utf-8") as f:
-        return f.read()
+    if offset is None and limit is None:
+        paginated_df = df
+    else:
+        paginated_offset = offset if offset is not None else 0
+        paginated_limit = limit if limit is not None else 100
+        paginated_df = df.iloc[
+            paginated_offset : paginated_offset + paginated_limit
+        ]
+
+    return paginated_df.to_csv(index=False)
 
 
-def get_json(category: str) -> list[dict]:
+def get_json(
+    category: str, offset: Optional[int] = None, limit: Optional[int] = None
+) -> list[dict]:
     """
     Reads the cached JSON file for the given category and returns
-        its content as a list of dictionaries.
+    its paginated content as a list of dictionaries.
+
+    If offset and limit are not provided, returns the entire dataset.
 
     Args:
         category (str): Name of the data category.
+        offset (int, optional): Number of items to skip. Default is 0.
+        limit (int, optional): Maximum number of items to return.
+            Default is 100.
 
     Returns:
-        list[dict]: Parsed JSON data.
+        list[dict]: Paginated JSON data or full dataset if no pagination
+            is requested.
     """
-    _get_category_class(category)  # Validate category
+    _get_category_class(category)
+
     filepath = os.path.join(
         settings.LOCAL_CACHE_FOLDER, f"table_{category}.json"
     )
-
     df = pd.read_json(filepath)
-    return df.to_dict(orient="records")
+
+    if offset is None and limit is None:
+        paginated_df = df
+    else:
+        paginated_offset = offset if offset is not None else 0
+        paginated_limit = limit if limit is not None else 100
+        paginated_df = df.iloc[
+            paginated_offset : paginated_offset + paginated_limit
+        ]
+
+    return paginated_df.to_dict(orient="records")
 
 
 def _get_category_class(category: str):

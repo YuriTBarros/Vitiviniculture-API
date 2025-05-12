@@ -7,19 +7,56 @@ import os
 
 class TradeScraper:
     def __init__(self):
-        self.base_url = "http://vitibrasil.cnpuv.embrapa.br/index.php"
         self.years = None
 
-    def get_year(self):
+    def sync(self, base_url, file_path, file_name):
+        """
+        Main method to execute the trade data scraping workflow.
+        It fetches the data, processes it, and saves it as CSV and JSON.
+
+        Args:
+            base_url (str): Base URL to scrape data from.
+            file_path (str): Directory path where files will be saved.
+            file_name (str): Name of the output files (without extension).
+
+        Returns:
+            bool: True if sync succeeded and data was saved, False otherwise.
+        """
         try:
-            response = requests.get(self.base_url + "?opcao=opt_04")
+            self._get_year(base_url)
+            df = self._trade_table(base_url)
+            if df.empty:
+                return False
+
+            df = self._encode_latin1(df)
+            df = self._clean_quantities(df)
+            df = self._categorize(df)
+            df = self._remove_categories(df)
+            df = self._remove_nan(df)
+            df = self._remove_total(df)
+
+            self._save_df(df, file_path, file_name)
+            return True
+
+        except Exception as e:
+            print(f"[WARN] Scraper failed. Reason: {e}")
+            return False
+
+    def _get_year(self, base_url):
+        """
+        Extracts the min and max year range available for scraping
+        from the input field in the HTML.
+        """
+        try:
+            response = requests.get(base_url + "?opcao=opt_04")
             response.raise_for_status()
         except RequestException as e:
             print(f"[ERROR] Failed to connect to Embrapa: {e}")
-            self.years = []
-            return
+            raise
+
         soup = BeautifulSoup(response.content, "html.parser")
         select_years = soup.find("input", {"class": "text_pesq"})
+
         self.years = [
             year
             for year in range(
@@ -27,7 +64,80 @@ class TradeScraper:
             )
         ]
 
-    def categorize(self, df: pd.DataFrame):
+    def _trade_table(self, base_url):
+        """
+        Fetches HTML tables for each available year and combines them.
+
+        Returns:
+            pd.DataFrame: Combined DataFrame for all years.
+        """
+        dfs = []
+
+        for year in self.years:
+            url = f"{base_url}?ano={year}&opcao=opt_04"
+            try:
+                print(f"Requesting {url}...")
+                df_year = pd.read_html(url)[3]
+                df_year["ano"] = year
+                dfs.append(df_year)
+            except Exception as e:
+                print(f"Error in {year}: {e}")
+                raise
+
+        if not dfs:
+            return pd.DataFrame()
+
+        df_final = pd.concat(dfs, ignore_index=True)
+
+        if "Unnamed: 2" in df_final.columns:
+            df_final = df_final.drop(columns="Unnamed: 2")
+
+        return df_final
+
+    def _encode_latin1(self, df):
+        """
+        Re-encodes the 'Produto' column from Latin-1 to UTF-8 to fix
+            encoding issues.
+        """
+        if "Produto" in df.columns:
+            df["Produto"] = (
+                df["Produto"]
+                .astype(str)
+                .apply(
+                    lambda x: (
+                        x.encode("latin1").decode("utf-8")
+                        if isinstance(x, str)
+                        else x
+                    )
+                )
+            )
+        return df
+
+    def _clean_quantities(self, df):
+        """
+        Normalizes the 'Quantidade (L.)' column by removing separators,
+        converting to numbers, and replacing dashes with zeros.
+        """
+        if "Quantidade (L.)" in df.columns:
+            df["Quantidade (L.)"] = df["Quantidade (L.)"].replace("-", "0")
+            df["Quantidade (L.)"] = (
+                df["Quantidade (L.)"]
+                .astype(str)
+                .str.replace(".", "", regex=False)
+                .str.replace("-", "", regex=False)
+                .str.strip()
+            )
+            df["Quantidade (L.)"] = pd.to_numeric(
+                df["Quantidade (L.)"], errors="coerce"
+            )
+        return df
+
+    def _categorize(self, df: pd.DataFrame):
+        """
+        Adds a new column 'Categoria' based on rows where 'Produto'
+            is uppercase.
+        These are considered headers for subsequent product rows.
+        """
         current_category = None
         categories = []
 
@@ -47,123 +157,47 @@ class TradeScraper:
         df["Categoria"] = categories
         return df
 
-        def is_valid_produto(x, excluded_products):
+    def _remove_categories(self, df):
+        """
+        Removes category rows from the DataFrame, keeping only product rows.
+
+        Returns:
+            pd.DataFrame: Filtered DataFrame with only product rows.
+        """
+        excluded_products = [
+            "VINHO FRIZANTE",
+            "VINHO ORGÂNICO",
+            "SUCO DE UVAS CONCENTRADO",
+        ]
+
+        def is_valid_produto(x):
             return (isinstance(x, str) and not x.strip().isupper()) or (
                 x.strip() in excluded_products
             )
 
-        def remove_categories(self, df):
-            excluded_products = [
-                "VINHO FRIZANTE",
-                "VINHO ORGÂNICO",
-                "SUCO DE UVAS CONCENTRADO",
-            ]
-            mask = df["Produto"].apply(
-                lambda x: is_valid_produto(x, excluded_products)
-            )
-            return df[mask].reset_index(drop=True)
+        mask = df["Produto"].apply(is_valid_produto)
+        return df[mask].reset_index(drop=True)
 
-    def trade_table(self):
-        dfs = []
+    def _remove_nan(self, df):
+        """
+        Removes rows containing any NaN values.
+        """
+        return df.dropna(axis=0)
 
-        for year in self.years:
-            url = f"{self.base_url}?ano={year}&opcao=opt_04"
-            try:
-                df_year = pd.read_html(url)[3]
-                df_year["ano"] = year
-                dfs.append(df_year)
-            except Exception as e:
-                print(f"Error in {year}: {e}")
-        if not dfs:
-            return pd.DataFrame()
-        df_final = pd.concat(dfs, ignore_index=True)
+    def _remove_total(self, df):
+        """
+        Removes summary rows where 'Produto' is 'Total'.
+        """
+        return df[df["Produto"] != "Total"]
 
-        # Remove column 'Unnamed: 2' if necessary.
-        if "Unnamed: 2" in df_final.columns:
-            df_final = df_final.drop(columns="Unnamed: 2")
+    def _save_df(self, df, file_path, file_name):
+        """
+        Saves the cleaned DataFrame as both CSV and JSON files.
+        """
+        os.makedirs(file_path, exist_ok=True)
 
-        # Calls the function Categorize
-        df_final = self.categorize(df_final)
-
-        return df_final
-
-    def encode_latin1(self, df):
-        if "Produto" in df.columns:
-            df["Produto"] = (
-                df["Produto"]
-                .astype(str)
-                .apply(
-                    lambda x: (
-                        x.encode("latin1").decode("utf-8")
-                        if isinstance(x, str)
-                        else x
-                    )
-                )
-            )
-        return df
-
-    def clean_quantities(self, df):
-        if "Quantidade (L.)" in df.columns:
-            df["Quantidade (L.)"] = df["Quantidade (L.)"].replace("-", "0")
-            df["Quantidade (L.)"] = (
-                df["Quantidade (L.)"]
-                .astype(str)
-                .str.replace(".", "", regex=False)
-                .str.replace("-", "", regex=False)
-                .str.strip()
-            )
-            df["Quantidade (L.)"] = pd.to_numeric(
-                df["Quantidade (L.)"], errors="coerce"
-            )
-        return df
-
-    def remove_nan(self, df):
-        df = df.dropna(axis=0)
-        return df
-
-    def remove_total(self, df):
-        df = df[df["Produto"] != "Total"]
-        return df
-
-    def save_df(self, df):
-        path = os.path.join("vitivinicultura-api", "data")
-        os.makedirs(path, exist_ok=True)
-        filepath = os.path.join(path, "tabela_comercio.csv")
+        filepath = os.path.join(file_path, f"{file_name}.csv")
         df.to_csv(filepath, index=False)
 
-    def get_json(self):
-        """
-        Attempts to fetch and clean importation data from Embrapa.
-        Falls back to loading local CSV if scraping fails.
-
-        Returns:
-            list[dict]: JSON-serializable data.
-        """
-        try:
-            self.get_year()
-            df = self.trade_table()
-            if df.empty:
-                return []
-            df = self.encode_latin1(df)
-            df = self.clean_quantities(df)
-            df = self.categorize(df)
-            df = self.remove_categories(df)
-            df = self.remove_nan(df)
-            df = self.remove_total(df)
-            self.save_df(df)
-
-            return df.to_dict(orient="records")
-
-        except Exception as e:
-            print(
-                f"[WARN] Scraper failed. Falling back to local CSV. "
-                f"Reason: {e}"
-            )
-            try:
-                df_fallback = pd.read_csv(
-                    "vitivinicultura-api/data/tabela_comercio.csv"
-                )
-                return df_fallback.to_dict(orient="records")
-            except Exception as fallback_error:
-                print(f"[ERROR] Failed to load fallback CSV: {fallback_error}")
-                return []
+        filepath_json = os.path.join(file_path, f"{file_name}.json")
+        df.to_json(filepath_json, orient="records", force_ascii=False)

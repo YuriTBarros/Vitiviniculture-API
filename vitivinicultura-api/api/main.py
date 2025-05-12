@@ -25,7 +25,8 @@ app = FastAPI(
 @app.on_event("startup")
 async def startup_event():
     init_db()
-    # asyncio.create_task(periodic_sync_job())
+    if settings.ENV == "PROD":
+        asyncio.create_task(periodic_sync_job())
 
 
 # Register routers

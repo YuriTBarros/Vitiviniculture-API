@@ -12,7 +12,7 @@ class ProductionScraper:
     def sync(self, base_url, file_path, file_name):
         """
         Main function that coordinates the scraping of data, cleans it,
-            and saves the results.
+        and saves the results.
 
         Args:
             base_url (str): The base URL for scraping the data.
@@ -21,7 +21,7 @@ class ProductionScraper:
 
         Returns:
             bool: Returns True if scraping and cleaning were successful,
-                False otherwise.
+            False otherwise.
         """
         try:
             self._get_year(base_url)
@@ -29,6 +29,7 @@ class ProductionScraper:
             if df.empty:
                 return False
 
+            # Apply a series of cleaning and transformation functions
             df = self._encode_latin1(df)
             df = self._clean_quantities(df)
             df = self._categorize(df)
@@ -44,6 +45,10 @@ class ProductionScraper:
             return False
 
     def _get_year(self, base_url):
+        """
+        Retrieves available years for which data can be scraped by parsing
+        min/max values from a specific input field on the webpage.
+        """
         try:
             response = requests.get(base_url + "?opcao=opt_02")
             response.raise_for_status()
@@ -61,6 +66,11 @@ class ProductionScraper:
         ]
 
     def _categorize(self, df: pd.DataFrame):
+        """
+        Identifies product categories by checking if the 'Produto' field
+            is all uppercase.
+        These entries are treated as category headers and propagated down.
+        """
         current_category = None
         categories = []
 
@@ -76,6 +86,11 @@ class ProductionScraper:
         return df
 
     def _remove_categories(self, df):
+        """
+        Removes rows where 'Produto' is actually a category
+            (i.e., all uppercase strings).
+        Keeps only actual product entries.
+        """
         if "Produto" not in df.columns:
             return df
         mask = df["Produto"].apply(
@@ -84,11 +99,18 @@ class ProductionScraper:
         return df[mask].reset_index(drop=True)
 
     def _production_table(self, base_url):
+        """
+        Retrieves and combines data tables from all available years.
+
+        Returns:
+            pd.DataFrame: Combined and initially cleaned DataFrame.
+        """
         dfs = []
         for year in self.years:
             url = f"{base_url}?ano={year}&opcao=opt_02"
             try:
                 print(f"Requesting {url}...")
+                # The 4th table (index 3) contains the relevant data
                 df_year = pd.read_html(url)[3]
                 df_year["ano"] = year
                 dfs.append(df_year)
@@ -99,16 +121,20 @@ class ProductionScraper:
             return pd.DataFrame()
         df_final = pd.concat(dfs, ignore_index=True)
 
-        #  Remove column 'Unnamed: 2' if necessary.
+        # Remove column 'Unnamed: 2' if it exists (likely unnecessary filler)
         if "Unnamed: 2" in df_final.columns:
             df_final = df_final.drop(columns="Unnamed: 2")
 
-        # Calls the function Categorize
+        # Ensure categories are re-applied
         df_final = self._categorize(df_final)
 
         return df_final
 
     def _encode_latin1(self, df):
+        """
+        Attempts to fix any character encoding issues by re-encoding strings.
+        """
+
         def try_fix_encoding(x):
             if not isinstance(x, str):
                 return x
@@ -122,6 +148,10 @@ class ProductionScraper:
         return df
 
     def _clean_quantities(self, df):
+        """
+        Cleans and converts quantity values to numeric.
+        Handles missing or malformed data such as '-' or '.' separators.
+        """
         if "Quantidade (L.)" in df.columns:
             df["Quantidade (L.)"] = df["Quantidade (L.)"].replace("-", "0")
             df["Quantidade (L.)"] = (
@@ -137,10 +167,16 @@ class ProductionScraper:
         return df
 
     def _remove_nan(self, df):
+        """
+        Removes rows with any missing values.
+        """
         df = df.dropna(axis=0)
         return df
 
     def _remove_total(self, df):
+        """
+        Removes summary rows labeled as 'Total'.
+        """
         df = df[df["Produto"] != "Total"]
         return df
 

@@ -5,8 +5,8 @@ WORKDIR /app
 COPY requirements.txt /app/
 COPY . /app/
 
-RUN pip install --upgrade pip && \
-    pip install -r requirements.txt
+RUN pip install --upgrade pip --root-user-action=ignore && \
+    pip install --no-cache-dir --root-user-action=ignore -r requirements.txt
 
 EXPOSE 8000
 

@@ -1,192 +1,139 @@
-# Machine Learning Engineering Master's
- This will be my main project in my Machine Learning Engineering Master's. I will refine my communication skills to handle more complex questions and work on a real case for my portfolio. At the end of each of the five phases, I will complete a full stage of this project.
+# Vitiviniculture API
 
-# Code Structure
+API for collecting, processing, and providing data related to vitiviniculture.
 
-# Wine Production Data API Structure
+## About the Project
 
-## Project Directory Structure
+This project provides an API that gathers data on production, processing, import, and export in the vitiviniculture sector. The API uses scrapers to collect data from different sources and makes this data available through REST endpoints.
+
+## Project Structure
 
 ```
 vitiviniculture-api/
-│
-├── .github/                      # CI/CD configurations for GitHub Actions
-│   └── workflows/
-│       └── deploy.yml            # Workflow for deployment automation
-│
-├── api/                          # Main API code
-│   ├── __init__.py
-│   ├── main.py                   # Application entry point
-│   ├── core/                     # Core components
-│   │   ├── __init__.py
-│   │   ├── config.py             # Application configurations
-│   │   ├── security.py           # JWT authentication
-│   │   └── logging.py            # Logging configuration
-│   │
-│   ├── models/                   # Data models/schemas
-│   │   ├── __init__.py
-│   │   ├── production.py
-│   │   ├── processing.py
-│   │   ├── commercialization.py
-│   │   ├── import.py
-│   │   └── export.py
-│   │
-│   ├── services/                 # Business logic/services
-│   │   ├── __init__.py
-│   │   ├── scraper.py            # Service for scraping data from Embrapa
-│   │   └── data_processor.py     # Data processing
-│   │
-│   ├── routes/                   # API endpoints
-│   │   ├── __init__.py
-│   │   ├── production.py
-│   │   ├── processing.py
-│   │   ├── commercialization.py
-│   │   ├── import.py
-│   │   └── export.py
-│   │
-│   └── utils/                    # Utility functions
-│       ├── __init__.py
-│       └── helpers.py            # Helper functions
-│
-├── database/                     # SQLite database
-│   ├── __init__.py
-│   ├── db.py                     # SQLite configuration
-│   └── models.py                 # ORM models
-│
-├── data/                         # Directory to store SQLite database file
-│   └── .gitkeep                  # Ensures the directory is versioned even if empty
-│
-├── docs/                         # Documentation
-│   ├── architecture.md           # Architecture documentation
-│   └── api.md                    # API documentation
-│
-├── tests/                        # Automated tests
-│   ├── __init__.py
-│   ├── test_routes/              # Tests for API endpoints
-│   ├── test_services/            # Tests for services
-│   └── conftest.py               # Test configurations
-│
-├── .gitignore                    # Files to be ignored by Git
-├── Dockerfile                    # Containerization setup
-├── docker-compose.yml            # Container orchestration
-├── requirements.txt              # Project dependencies
-├── README.md                     # Project documentation
-└── setup.py                      # Setup for package installation
+├── api/                            # Main API code
+│   ├── background_jobs/            # Background jobs
+│   ├── core/                       # Configuration and security
+│   ├── exceptions/                 # Custom exceptions
+│   ├── models/                     # Data models
+│   ├── routes/                     # API routes
+│   ├── schemas/                    # Validation schemas
+│   └── services/                   # Services and scrapers
+├── data/                           # Collected data in CSV and JSON
+├── database/                       # Database configuration
+├── docs/                           # Documentation
+└── requirements.txt                # Project dependencies
 ```
 
-# Detailed Explanation of the Project Structure
+## Features
 
-## Top-Level Folders
+- User authentication and authorization
+- Automated collection of vitiviniculture data
+- Categorization of collected data
+- Endpoints for querying data on:
+  - Production
+  - Processing
+  - Import
+  - Export
+  - Trade
 
-### `.github/`
-**Purpose:** Contains configurations for GitHub integration.
-- `workflows/deploy.yml`: Defines the CI/CD (Continuous Integration/Continuous Delivery) pipeline that automates testing and deployment of the application when new changes are pushed to the repository.
+## Technologies Used
 
-### `api/`
-**Purpose:** Contains all the main code of the API application.
-- It's the heart of the project where the API logic is implemented.
+- Python
+- FastAPI (inferred from the structure)
+- SQLite (database)
+- Docker
 
-### `database/`
-**Purpose:** Contains everything related to the SQLite database.
-- Responsible for configuration, connection, and database models.
+## Installation and Setup
 
-### `data/`
-**Purpose:** Directory where the physical SQLite database file will be stored.
-- `.gitkeep`: Empty file that ensures Git keeps the empty directory in the repository.
+### Prerequisites
 
-### `docs/`
-**Purpose:** Contains project documentation.
-- Includes technical documentation, architecture documentation, and usage guides.
+- Python 3.8+
+- Docker (optional)
 
-### `tests/`
-**Purpose:** Contains all automated tests for the project.
-- Fundamental to ensure the API works correctly.
+### Docker Installation
 
-## Internal API Structure
+```bash
+# Clone the repository
+git clone https://github.com/your-username/vitiviniculture-api.git
+cd vitiviniculture-api
 
-### `api/main.py`
-**Purpose:** Entry point of the application.
-- Defines the main FastAPI or Flask application object and registers routes and middlewares.
+# Build and run with Docker
+docker build -t vitiviniculture-api .
+docker run -p 8000:8000 vitiviniculture-api
+```
 
-### `api/core/`
-**Purpose:** Contains core components that serve as the foundation for the entire application.
-- `config.py`: Manages application configurations such as environment variables.
-- `security.py`: Implements JWT authentication and access control.
-- `logging.py`: Configures the application's logging system.
+### Local Installation
 
-### `api/models/`
-**Purpose:** Defines data schemas/models for API input and output validation.
-- Each file corresponds to a category of Embrapa data:
-  - `producao.py`: Schemas for wine production data.
-  - `processamento.py`: Schemas for processing data.
-  - `comercializacao.py`: Schemas for commercialization data.
-  - `importacao.py`: Schemas for import data.
-  - `exportacao.py`: Schemas for export data.
+```bash
+# Clone the repository
+git clone https://github.com/your-username/vitiviniculture-api.git
+cd vitiviniculture-api
 
-### `api/services/`
-**Purpose:** Contains the application's core business logic.
-- `scraper.py`: Implements functionality to extract data from the Embrapa website.
-- `data_processor.py`: Processes and transforms scraped data into the appropriate format.
+# Create virtual environment
+python -m venv venv
+source venv/bin/activate  # Linux/MacOS
+# or
+venv\Scripts\activate  # Windows
 
-### `api/routes/`
-**Purpose:** Defines the REST API endpoints.
-- Each file corresponds to a different category and defines specific endpoints:
-  - `producao.py`: Endpoints for querying production data.
-  - `processamento.py`: Endpoints for processing data.
-  - `comercializacao.py`: Endpoints for commercialization data.
-  - `importacao.py`: Endpoints for import data.
-  - `exportacao.py`: Endpoints for export data.
+# Install dependencies
+pip install -r requirements.txt
 
-### `api/utils/`
-**Purpose:** Contains utility functions that can be used in various parts of the application.
-- `helpers.py`: Generic helper functions, such as data formatting, validations, etc.
+# Run the API
+python -m api.main
+```
 
-## Database
+## Usage
 
-### `database/db.py`
-**Purpose:** Configures the connection to the SQLite database.
-- Defines functions to create connections and manage sessions.
+After starting the API, you can access it at `http://localhost:8000`.
 
-### `database/models.py`
-**Purpose:** Defines the ORM (Object-Relational Mapping) models that represent the tables in the database.
-- Defines the structure of the tables where data will be stored.
+### Main Endpoints
 
-## Configuration Files
+- `/auth/token` - Get authentication token
+- `/categories` - List available categories
+- `/exportation` - Export data
+- `/importation` - Import data
+- `/production` - Production data
+- `/processing` - Processing data
+- `/trade` - Trade data
 
-### `Dockerfile`
-**Purpose:** Defines how to build the Docker image of the application.
-- Specifies the environment, dependencies, and how to run the application.
+For more details about the available endpoints, see the [API documentation](docs/api.md).
 
-### `docker-compose.yml`
-**Purpose:** Defines how the different application services relate to each other.
-- Allows starting all necessary components with a single command.
+## Development
 
-### `requirements.txt`
-**Purpose:** Lists all Python dependencies required for the project.
-- Used to install packages with pip: `pip install -r requirements.txt`.
+### Makefile
 
-### `README.md`
-**Purpose:** Main project documentation.
-- Contains installation instructions, configuration, usage, and other important information.
+The project includes a Makefile to facilitate common development tasks:
 
-### `setup.py`
-**Purpose:** Configures the project as an installable Python package.
-- Allows the project to be installed via pip in other environments.
+```bash
+# Run tests
+make test
 
-### `.gitignore`
-**Purpose:** Specifies which files or directories should be ignored by Git.
-- Typically includes temporary files, caches, virtual environments, and credentials.
+# Check code style (flake8)
+make lint
 
-## Tests
+# Start development environment
+make dev
+```
 
-### `tests/conftest.py`
-**Purpose:** Contains configurations and fixtures for tests.
-- Defines shared resources that can be used in multiple tests.
+### Git Workflow
 
-### `tests/test_routes/`
-**Purpose:** Contains tests for the API endpoints.
-- Verifies that routes respond correctly to requests.
+The project uses GitHub Actions for automatic code verification. When submitting a pull request, the `verify.yml` workflow will run to ensure code quality.
 
-### `tests/test_services/`
-**Purpose:** Contains tests for services (business logic).
-- Verifies that services process data correctly.
+## Documentation
+
+- [API Documentation](docs/api.md)
+- [System Architecture](docs/architecture.md)
+
+## License
+
+This project is licensed under the terms included in the [LICENSE](LICENSE) file.
+
+## Contributing
+
+1. Fork the project
+2. Create a branch for your feature (`git checkout -b feature/new-feature`)
+3. Commit your changes (`git commit -m 'Add new feature'`)
+4. Push to the branch (`git push origin feature/new-feature`)
+5. Open a Pull Request
+
+See the pull request template in [.github/pull_request_template.md](.github/pull_request_template.md) for more information on how to contribute.

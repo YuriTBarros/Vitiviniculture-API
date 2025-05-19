@@ -54,7 +54,7 @@ vitiviniculture-api/
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/vitiviniculture-api.git
+git clone https://github.com/IgorComune/vitiviniculture-api.git
 cd vitiviniculture-api
 
 # Build and run with Docker
@@ -66,7 +66,7 @@ docker run -p 8000:8000 vitiviniculture-api
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/vitiviniculture-api.git
+git clone https://github.com/IgorComune/vitiviniculture-api.git
 cd vitiviniculture-api
 
 # Create virtual environment
@@ -84,16 +84,19 @@ python -m api.main
 
 ## Usage
 
-After starting the API, you can access it at `http://localhost:8000`.
+After starting the API, you can access it at:
+
+- `http://localhost:8000` (local development)
+- `https://vitiviniculture-api.onrender.com/docs` (production)
 
 ### Main Endpoints
 
-- `/auth/token` - Get authentication token
-- `/categories` - List available categories
-- `/exportation` - Export data
-- `/importation` - Import data
-- `/production` - Production data
-- `/processing` - Processing data
+- `/auth/token` - Get authentication token  
+- `/categories` - List available categories  
+- `/exportation` - Export data  
+- `/importation` - Import data  
+- `/production` - Production data  
+- `/processing` - Processing data  
 - `/trade` - Trade data
 
 For more details about the available endpoints, see the [API documentation](docs/api.md).
@@ -130,10 +133,90 @@ This project is licensed under the terms included in the [LICENSE](LICENSE) file
 
 ## Contributing
 
-1. Fork the project
-2. Create a branch for your feature (`git checkout -b feature/new-feature`)
-3. Commit your changes (`git commit -m 'Add new feature'`)
-4. Push to the branch (`git push origin feature/new-feature`)
-5. Open a Pull Request
+1. Fork the project  
+2. Create a branch for your feature (`git checkout -b feature/new-feature`)  
+3. Commit your changes (`git commit -m 'Add new feature'`)  
+4. Push to the branch (`git push origin feature/new-feature`)  
+5. Open a Pull Request  
 
 See the pull request template in [.github/pull_request_template.md](.github/pull_request_template.md) for more information on how to contribute.
+
+## Examples (Postman)
+
+Here are example requests for each endpoint using Postman.
+
+### 1. Authentication - `/auth/token`
+
+**Method**: POST  
+**URL**: `https://vitiviniculture-api.onrender.com/auth/token`  
+**Body (x-www-form-urlencoded)**:
+```
+username: your_username
+password: your_password
+```
+
+---
+
+### 2. Categories - `/categories`
+
+**Method**: GET  
+**URL**: `https://vitiviniculture-api.onrender.com/categories`  
+**Headers**:
+```
+Authorization: Bearer <your_token>
+```
+
+---
+
+### 3. Exportation - `/exportation`
+
+**Method**: GET  
+**URL**: `https://vitiviniculture-api.onrender.com/exportation`  
+**Headers**:
+```
+Authorization: Bearer <your_token>
+```
+
+---
+
+### 4. Importation - `/importation`
+
+**Method**: GET  
+**URL**: `https://vitiviniculture-api.onrender.com/importation`  
+**Headers**:
+```
+Authorization: Bearer <your_token>
+```
+
+---
+
+### 5. Production - `/production`
+
+**Method**: GET  
+**URL**: `https://vitiviniculture-api.onrender.com/production`  
+**Headers**:
+```
+Authorization: Bearer <your_token>
+```
+
+---
+
+### 6. Processing - `/processing`
+
+**Method**: GET  
+**URL**: `https://vitiviniculture-api.onrender.com/processing`  
+**Headers**:
+```
+Authorization: Bearer <your_token>
+```
+
+---
+
+### 7. Trade - `/trade`
+
+**Method**: GET  
+**URL**: `https://vitiviniculture-api.onrender.com/trade`  
+**Headers**:
+```
+Authorization: Bearer <your_token>
+```

@@ -12,14 +12,14 @@ async def periodic_sync_job():
             print("[SYNC] Starting importation sync...")
             await category_service.sync("importation")
 
-            # print("[SYNC] Starting processing sync...")
-            # await category_service.sync("processing")
+            print("[SYNC] Starting processing sync...")
+            await category_service.sync("processing")
 
-            # print("[SYNC] Starting production sync...")
-            # await category_service.sync("production")
+            print("[SYNC] Starting production sync...")
+            await category_service.sync("production")
 
-            # print("[SYNC] Starting trade sync...")
-            # await category_service.sync("trade")
+            print("[SYNC] Starting trade sync...")
+            await category_service.sync("trade")
         except Exception as e:
             print(f"[SYNC-ERROR] Sync failed: {e}")
         print("[SYNC] Waiting 10 minutes before next sync...")

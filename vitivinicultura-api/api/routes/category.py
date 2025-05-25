@@ -102,6 +102,9 @@ def get_category(
         ge=1,
         description="Max number of items to return (optional)",
     ),
+    year: Optional[int] = Query(
+        None, description="Filter data by year (optional)"
+    ),
 ):
     """
     Return cached viticulture data in the format requested by the client
@@ -122,6 +125,9 @@ def get_category(
         category (CategoryEnum): Category of viticulture data.
         request (Request): FastAPI request object (used to inspect headers).
         user (str): Authenticated user.
+        offset (Optional[int]): Number of items to skip (optional).
+        limit (Optional[int]): Max number of items to return (optional).
+        year (Optional[int]): Filter data by a specific year (optional).
 
     Returns:
         JSONResponse or PlainTextResponse: The data in requested format.
@@ -143,7 +149,7 @@ def get_category(
 
         if "text/csv" in accept:
             csv_content = category_service.get_csv(
-                category.value, offset=offset, limit=limit
+                category.value, offset=offset, limit=limit, year=year
             )
             return PlainTextResponse(
                 content=csv_content, media_type="text/csv"
@@ -151,7 +157,7 @@ def get_category(
 
         elif "application/json" in accept or "*/*" in accept or not accept:
             json_content = category_service.get_json(
-                category.value, offset=offset, limit=limit
+                category.value, offset=offset, limit=limit, year=year
             )
             return JSONResponse(content=json_content)
 

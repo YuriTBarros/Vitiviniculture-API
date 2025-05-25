@@ -22,6 +22,7 @@ vitiviniculture-api/
 ├── database/                       # Database configuration
 ├── docs/                           # Documentation
 └── requirements.txt                # Project dependencies
+└── .env (you need to create this)  # Environment variables
 ```
 
 ## Features
@@ -49,6 +50,8 @@ vitiviniculture-api/
 
 - Python 3.8+
 - Docker (optional)
+- uvicorn
+- Create a .env file
 
 ### Docker Installation
 
@@ -56,6 +59,8 @@ vitiviniculture-api/
 # Clone the repository
 git clone https://github.com/IgorComune/vitiviniculture-api.git
 cd vitiviniculture-api
+create a .env file
+insert SECRET_KEY="YOUR_PERSONAL_KEY_HERE"
 
 # Build and run with Docker
 docker build -t vitiviniculture-api .
@@ -68,9 +73,11 @@ docker run -p 8000:8000 vitiviniculture-api
 # Clone the repository
 git clone https://github.com/IgorComune/vitiviniculture-api.git
 cd vitiviniculture-api
+create a .env file
+insert SECRET_KEY="YOUR_PERSONAL_KEY_HERE"
 
 # Create virtual environment
-python -m venv venv
+python -m venv .venv
 source venv/bin/activate  # Linux/MacOS
 # or
 venv\Scripts\activate  # Windows
@@ -79,7 +86,8 @@ venv\Scripts\activate  # Windows
 pip install -r requirements.txt
 
 # Run the API
-python -m api.main
+cd ./vitivinicultura-api
+uvicorn api.main:app --reload
 ```
 
 ## Usage
@@ -98,8 +106,6 @@ After starting the API, you can access it at:
 - `/production` - Production data  
 - `/processing` - Processing data  
 - `/trade` - Trade data
-
-For more details about the available endpoints, see the [API documentation](docs/api.md).
 
 ## Development
 
@@ -122,10 +128,9 @@ make dev
 
 The project uses GitHub Actions for automatic code verification. When submitting a pull request, the `verify.yml` workflow will run to ensure code quality.
 
-## Documentation
+## Project Architecture
 
-- [API Documentation](docs/api.md)
-- [System Architecture](docs/architecture.md)
+[![Project Architecture](https://cdn.discordapp.com/attachments/1374899745033687121/1374899824859676752/Inserir_um_titulo.png?ex=683457fe&is=6833067e&hm=cc5102426aa55870be81004dc73367375b909f6b9bc9a9e8cf178e58f9df2eae)]
 
 ## License
 

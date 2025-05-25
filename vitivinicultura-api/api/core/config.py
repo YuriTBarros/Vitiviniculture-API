@@ -26,6 +26,7 @@ class Settings(BaseSettings):
     LOCAL_CACHE_FOLDER: str = os.path.join("data")
     SECRET_KEY: str
 
+
     class Config:
         env_file = ".env"
 

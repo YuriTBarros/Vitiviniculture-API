@@ -22,6 +22,9 @@ __scrapers_registry = {
     "trade": TradeScraper,
 }
 
+# Year field
+__year_filter = "ano"
+
 
 async def sync(category: str) -> SyncResponse:
     """
@@ -45,7 +48,10 @@ async def sync(category: str) -> SyncResponse:
 
 
 def get_csv(
-    category: str, offset: Optional[int] = None, limit: Optional[int] = None
+    category: str,
+    offset: Optional[int] = None,
+    limit: Optional[int] = None,
+    year: Optional[int] = None,
 ) -> str:
     """
     Reads the cached CSV file for the given category and returns
@@ -58,6 +64,7 @@ def get_csv(
         offset (int, optional): Number of items to skip. Default is 0.
         limit (int, optional): Maximum number of items to return.
             Default is 100.
+        year (int, optional): Year to filter the data by.
 
     Returns:
         str: Paginated CSV content or full dataset if no pagination
@@ -68,7 +75,10 @@ def get_csv(
     filepath = os.path.join(
         settings.LOCAL_CACHE_FOLDER, f"table_{category}.csv"
     )
-    df = pd.read_csv(filepath)
+    df = pd.read_csv(filepath, dtype={__year_filter: int})
+
+    if year is not None:
+        df = df[df[__year_filter] == year]
 
     if offset is None and limit is None:
         paginated_df = df
@@ -83,7 +93,10 @@ def get_csv(
 
 
 def get_json(
-    category: str, offset: Optional[int] = None, limit: Optional[int] = None
+    category: str,
+    offset: Optional[int] = None,
+    limit: Optional[int] = None,
+    year: Optional[int] = None,
 ) -> list[dict]:
     """
     Reads the cached JSON file for the given category and returns
@@ -96,6 +109,7 @@ def get_json(
         offset (int, optional): Number of items to skip. Default is 0.
         limit (int, optional): Maximum number of items to return.
             Default is 100.
+        year (int, optional): Year to filter the data by.
 
     Returns:
         list[dict]: Paginated JSON data or full dataset if no pagination
@@ -107,6 +121,10 @@ def get_json(
         settings.LOCAL_CACHE_FOLDER, f"table_{category}.json"
     )
     df = pd.read_json(filepath)
+
+    if year is not None:
+        df[__year_filter] = df[__year_filter].astype(int)
+        df = df[df[__year_filter] == year]
 
     if offset is None and limit is None:
         paginated_df = df

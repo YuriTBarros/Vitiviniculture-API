@@ -72,7 +72,7 @@ docker run -p 8000:8000 vitiviniculture-api
 ```bash
 # Clone the repository
 git clone https://github.com/IgorComune/vitiviniculture-api.git
-cd vitiviniculture-api
+cd .\tech_challenge_ml_engineer\vitivinicultura-api\
 create a .env file
 insert SECRET_KEY="YOUR_PERSONAL_KEY_HERE"
 
@@ -86,7 +86,7 @@ venv\Scripts\activate  # Windows
 pip install -r requirements.txt
 
 # Run the API
-cd ./vitivinicultura-api
+cd .\tech_challenge_ml_engineer\vitivinicultura-api\
 uvicorn api.main:app --reload
 ```
 

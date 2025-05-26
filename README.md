@@ -21,7 +21,7 @@ vitiviniculture-api/
 ├── data/                           # Collected data in CSV and JSON
 ├── database/                       # Database configuration
 ├── docs/                           # Documentation
-└── requirements.txt                # Project dependencies
+├── requirements.txt                # Project dependencies
 └── .env (you need to create this)  # Environment variables
 ```
 
@@ -48,7 +48,7 @@ vitiviniculture-api/
 
 ### Prerequisites
 
-- Python 3.8+
+- Python 3.11+
 - Docker (optional)
 - uvicorn
 - Create a .env file
@@ -57,8 +57,8 @@ vitiviniculture-api/
 
 ```bash
 # Clone the repository
-git clone https://github.com/IgorComune/vitiviniculture-api.git
-cd vitiviniculture-api
+git clone https://github.com/IgorComune/tech_challenge_ml_engineer
+cd .\tech_challenge_ml_engineer\vitivinicultura-api\
 create a .env file
 insert SECRET_KEY="YOUR_PERSONAL_KEY_HERE"
 
@@ -71,7 +71,7 @@ docker run -p 8000:8000 vitiviniculture-api
 
 ```bash
 # Clone the repository
-git clone https://github.com/IgorComune/vitiviniculture-api.git
+git clone https://github.com/IgorComune/tech_challenge_ml_engineer
 cd .\tech_challenge_ml_engineer\vitivinicultura-api\
 create a .env file
 insert SECRET_KEY="YOUR_PERSONAL_KEY_HERE"
@@ -130,7 +130,7 @@ The project uses GitHub Actions for automatic code verification. When submitting
 
 ## Project Architecture
 
-[![Project Architecture](https://cdn.discordapp.com/attachments/1374899745033687121/1374899824859676752/Inserir_um_titulo.png?ex=683457fe&is=6833067e&hm=cc5102426aa55870be81004dc73367375b909f6b9bc9a9e8cf178e58f9df2eae)]
+![Project Architecture](https://cdn.discordapp.com/attachments/1374899745033687121/1374899824859676752/Inserir_um_titulo.png?ex=683457fe&is=6833067e&hm=cc5102426aa55870be81004dc73367375b909f6b9bc9a9e8cf178e58f9df2eae)
 
 ## License
 

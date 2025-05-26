@@ -1,7 +1,7 @@
 import asyncio
 import os
 import pandas as pd
-from typing import Optional
+from typing import List, Optional
 
 from api.core.config import settings
 from api.exceptions.scraper_not_found_exception import ScraperNotFoundException
@@ -24,6 +24,17 @@ __scrapers_registry = {
 
 # Year field
 __year_filter = "ano"
+
+
+def get_categories_list() -> List[str]:
+    """
+    Returns the list of available categories.
+
+    Returns:
+        list[str]: A list of keys representing the registered
+            categories.
+    """
+    return list(__scrapers_registry.keys())
 
 
 async def sync(category: str) -> SyncResponse:

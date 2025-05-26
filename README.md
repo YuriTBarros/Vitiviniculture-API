@@ -113,12 +113,12 @@ make run        # Run the API
 | ------ | ----------------------- | ------------------------------------------| ------------------| -------------------|
 | POST   | `/auth/register`        | Register a new user                       |                   | `{}` JSON          |
 | POST   | `/auth/login`           | Get JWT token                             |                   | `{}` JSON          |
+| GET    | `/category`             | List of available categories              |                   | `{}` JSON          |
 | GET    | `/category/exportation` | Export data (served from local cache)     | `year` (optional) | `{}` JSON, 🟩📊 CSV |
 | GET    | `/category/importation` | Import data (served from local cache)     | `year` (optional) | `{}` JSON, 🟩📊 CSV |
 | GET    | `/category/production`  | Production data (served from local cache) | `year` (optional) | `{}` JSON, 🟩📊 CSV |
 | GET    | `/category/processing`  | Processing data (served from local cache) | `year` (optional) | `{}` JSON, 🟩📊 CSV |
 | GET    | `/category/trade`       | Trade data (served from local cache)      | `year` (optional) | `{}` JSON, 🟩📊 CSV |
-
 
 
 - Access the docs at [http://localhost:8000/docs](http://localhost:8000/docs) in development  
@@ -144,6 +144,12 @@ GitHub Actions runs the [`verify.yml`](.github/workflows/verify.yml) workflow on
 3. **Deploy to Render** — automatically deploys to the production environment - only runs on the `main` branch
 
 ## 🧱 Architecture
+
+Our project consists of an API and a background service. When the project starts, both the API and the background service are launched. Every 10 minutes, the background service crawls the Embrapa website and updates the data locally, storing it in a cache in JSON and CSV file formats.
+
+All API read operations retrieve data from this local cache to minimize performance impacts and avoid dependency on the Embrapa website, which can sometimes be offline.
+
+Additionally, all read endpoints are protected and require JWT-based authentication to ensure secure access.
 
 ![Project Architecture](https://cdn.discordapp.com/attachments/1374899745033687121/1374899824859676752/Inserir_um_titulo.png?ex=683457fe&is=6833067e&hm=cc5102426aa55870be81004dc73367375b909f6b9bc9a9e8cf178e58f9df2eae)
 
@@ -183,7 +189,16 @@ curl --location 'https://vitiviniculture-api.onrender.com/auth/login' \
 --data-urlencode 'password=your_password'
 ```
 
-### 3. Exportation - `/category/exportation`
+### 3. List categories - `/category`
+
+**Endpoint**: GET `https://vitiviniculture-api.onrender.com/category`
+```bash
+curl --location 'https://vitiviniculture-api.onrender.com/category' \
+--header 'Authorization: Bearer your-jwt-token' \
+--header 'Accept: application/json'
+```
+
+### 4. Exportation - `/category/exportation`
 
 **Endpoint**: GET `https://vitiviniculture-api.onrender.com/category/exportation`
 ```bash
@@ -208,7 +223,7 @@ curl --location 'https://vitiviniculture-api.onrender.com/category/exportation?y
 --header 'Accept: text/csv'
 ```
 
-### 4. Importation - `/category/importation`
+### 5. Importation - `/category/importation`
 
 **Endpoint**: GET `https://vitiviniculture-api.onrender.com/category/importation`
 ```bash
@@ -233,7 +248,7 @@ curl --location 'https://vitiviniculture-api.onrender.com/category/importation?y
 --header 'Accept: text/csv'
 ```
 
-### 5. Production - `/category/production`
+### 6. Production - `/category/production`
 
 **Endpoint**: GET `https://vitiviniculture-api.onrender.com/category/production`
 ```bash
@@ -258,7 +273,7 @@ curl --location 'https://vitiviniculture-api.onrender.com/category/production?ye
 --header 'Accept: text/csv'
 ```
 
-### 6. Processing - `/category/processing`
+### 7. Processing - `/category/processing`
 
 **Endpoint**: GET `https://vitiviniculture-api.onrender.com/category/processing`
 ```bash
@@ -283,7 +298,7 @@ curl --location 'https://vitiviniculture-api.onrender.com/category/processing?ye
 --header 'Accept: text/csv'
 ```
 
-### 7. Trade - `/category/trade`
+### 8. Trade - `/category/trade`
 
 **Endpoint**: GET `https://vitiviniculture-api.onrender.com/category/trade`
 ```bash

@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import List, Optional
 from fastapi import (
     APIRouter,
     BackgroundTasks,
@@ -17,6 +17,27 @@ from api.exceptions.scraper_not_found_exception import ScraperNotFoundException
 from api.services import category_service
 
 router = APIRouter(prefix="/category", tags=["category"])
+
+
+@router.get(
+    "",
+    summary="Get available viticulture data categories",
+    status_code=status.HTTP_200_OK,
+    response_model=List[str],
+)
+async def get_categories_list(
+    user: str = Depends(get_current_user),
+) -> List[str]:
+    """
+    Returns the list of available viticulture data categories.
+
+    Args:
+        user (str): Authenticated user (injected via Depends).
+
+    Returns:
+        List[str]: List of viticulture data categories available for scraping.
+    """
+    return category_service.get_categories_list()
 
 
 @router.post(

@@ -1,12 +1,12 @@
-# Vitiviniculture API
+# 🍇 🍇 🍇 Vitiviniculture API — FastAPI + Scrapers + Docker 
 
-API for collecting, processing, and providing data related to vitiviniculture.
+![GitHub Actions](https://github.com/IgorComune/tech_challenge_ml_engineer/actions/workflows/verify.yml/badge.svg) ![versions](https://img.shields.io/pypi/pyversions/pybadges.svg)
 
-## About the Project
+## 🏁 Getting Started
 
-This project provides an API that gathers data on production, processing, import, and export in the vitiviniculture sector. The API uses scrapers to collect data from different sources and makes this data available through REST endpoints.
+This API provides data related to vitiviniculture, including production, processing, import, export, and trade. Data is collected from public sources using web scrapers, primarily from the Embrapa Vitiviniculture website: [http://vitibrasil.cnpuv.embrapa.br](http://vitibrasil.cnpuv.embrapa.br), and served through a RESTful interface.
 
-## Project Structure
+## 📁 Project Structure
 
 ```
 vitiviniculture-api/
@@ -17,126 +17,143 @@ vitiviniculture-api/
 │   ├── models/                     # Data models
 │   ├── routes/                     # API routes
 │   ├── schemas/                    # Validation schemas
-│   └── services/                   # Services and scrapers
+│   ├── services/                   # Services and scrapers
+|   └── main.py                     # API entry point
 ├── data/                           # Collected data in CSV and JSON
 ├── database/                       # Database configuration
 ├── docs/                           # Documentation
 ├── requirements.txt                # Project dependencies
-└── .env (you need to create this)  # Environment variables
+└── .env                            # Environment variables (you must create this)
 ```
 
-## Features
+## 🚀 Features
 
-- User authentication and authorization
-- Automated collection of vitiviniculture data
-- Categorization of collected data
-- Endpoints for querying data on:
-  - Production
-  - Processing
-  - Import
-  - Export
+- 🔐 User authentication and token-based access  
+- 🕸️ Web scrapers to collect real-world data  
+- 📊 Categorization of vitiviniculture data  
+- 🌐 REST API endpoints for:  
+  - Production  
+  - Processing  
+  - Import  
+  - Export  
   - Trade
 
-## Technologies Used
+## 🛠️ Tech Stack
 
-- Python
-- FastAPI (inferred from the structure)
-- SQLite (database)
-- Docker
+- **Python 3.11+**  
+- **FastAPI**  
+- **SQLite**  
+- **Docker**  
+- **Uvicorn**  
+- **Makefile (for automation)**
 
-## Installation and Setup
+## ⚙️ Installation
 
-### Prerequisites
-
-- Python 3.11+
-- Docker (optional)
-- uvicorn
-- Create a .env file
-
-### Docker Installation
+### 🐳 Option 1 — With Docker 
 
 ```bash
 # Clone the repository
 git clone https://github.com/IgorComune/tech_challenge_ml_engineer
-cd .\tech_challenge_ml_engineer\vitivinicultura-api\
-create a .env file
-insert SECRET_KEY="YOUR_PERSONAL_KEY_HERE"
+cd tech_challenge_ml_engineer/vitivinicultura-api/
+
+# Create .env file
+echo 'SECRET_KEY="YOUR_PERSONAL_KEY_HERE"' >> .env
 
 # Build and run with Docker
 docker build -t vitiviniculture-api .
 docker run -p 8000:8000 vitiviniculture-api
 ```
 
-### Local Installation
+### 💻 Option 2 — Local Setup
 
 ```bash
 # Clone the repository
 git clone https://github.com/IgorComune/tech_challenge_ml_engineer
-cd .\tech_challenge_ml_engineer\vitivinicultura-api\
-create a .env file
-insert SECRET_KEY="YOUR_PERSONAL_KEY_HERE"
+cd tech_challenge_ml_engineer/vitivinicultura-api/
 
-# Create virtual environment
+# Create .env file
+echo 'SECRET_KEY="YOUR_PERSONAL_KEY_HERE"' >> .env
+
+# Create and activate virtual environment
+# Linux/macOS
 python -m venv .venv
-source venv/bin/activate  # Linux/MacOS
-# or
-venv\Scripts\activate  # Windows
+source .venv/bin/activate
+
+# Windows
+python -m venv .venv
+.venv\Scripts\activate
 
 # Install dependencies
 pip install -r requirements.txt
 
 # Run the API
-cd .\tech_challenge_ml_engineer\vitivinicultura-api\
 uvicorn api.main:app --reload
 ```
+### 🧰 Option 3 — Alternative (Makefile)
 
-## Usage
-
-After starting the API, you can access it at:
-
-- `http://localhost:8000` (local development)
-- `https://vitiviniculture-api.onrender.com/docs` (production)
-
-### Main Endpoints
-
-- `/auth/token` - Get authentication token  
-- `/categories` - List available categories  
-- `/exportation` - Export data  
-- `/importation` - Import data  
-- `/production` - Production data  
-- `/processing` - Processing data  
-- `/trade` - Trade data
-
-## Development
-
-### Makefile
-
-The project includes a Makefile to facilitate common development tasks:
+If you prefer using make, you can use:
 
 ```bash
-# Run tests
-make test
+# Clone the repository
+git clone https://github.com/IgorComune/tech_challenge_ml_engineer
+cd tech_challenge_ml_engineer/vitivinicultura-api/
 
-# Check code style (flake8)
-make lint
+# Create .env file
+echo 'SECRET_KEY="YOUR_PERSONAL_KEY_HERE"' >> .env
 
-# Start development environment
-make dev
+# Makefile
+make venv       # Create virtual environment
+make install    # Install dependencies
+make run        # Run the API
 ```
 
-### Git Workflow
+## 📌 Endpoints
 
-The project uses GitHub Actions for automatic code verification. When submitting a pull request, the `verify.yml` workflow will run to ensure code quality.
+| Method | Endpoint                | Description                               | Filters           | Responses          |
+| ------ | ----------------------- | ------------------------------------------| ------------------| -------------------|
+| POST   | `/auth/register`        | Register a new user                       |                   | `{}` JSON          |
+| POST   | `/auth/login`           | Get JWT token                             |                   | `{}` JSON          |
+| GET    | `/category`             | List of available categories              |                   | `{}` JSON          |
+| GET    | `/category/exportation` | Export data (served from local cache)     | `year` (optional) | `{}` JSON, 🟩📊 CSV |
+| GET    | `/category/importation` | Import data (served from local cache)     | `year` (optional) | `{}` JSON, 🟩📊 CSV |
+| GET    | `/category/production`  | Production data (served from local cache) | `year` (optional) | `{}` JSON, 🟩📊 CSV |
+| GET    | `/category/processing`  | Processing data (served from local cache) | `year` (optional) | `{}` JSON, 🟩📊 CSV |
+| GET    | `/category/trade`       | Trade data (served from local cache)      | `year` (optional) | `{}` JSON, 🟩📊 CSV |
 
-## Project Architecture
+
+- Access the docs at [http://localhost:8000/docs](http://localhost:8000/docs) in development  
+- Or access the production environment hosted on [Render](https://render.com) at [https://vitiviniculture-api.onrender.com/docs](https://vitiviniculture-api.onrender.com/docs)  
+
+## 🧪 Development
+
+### 🔧 Makefile Commands
+```bash
+make venv     # Create virtualenv
+make install  # Install dependencies
+make run      # Start API (dev)
+make lint     # Run code style check (flake8)
+make format   # Format code (black + isort)
+```
+
+### ✅ CI/CD
+
+GitHub Actions runs the [`verify.yml`](.github/workflows/verify.yml) workflow on each pull request to ensure code quality and formatting. The workflow consists of three phases:
+
+1. **Lint** — checks code style and formatting  
+2. **Build Docker** — tests if the Docker build completes successfully  
+3. **Deploy to Render** — automatically deploys to the production environment - only runs on the `main` branch
+
+## 🧱 Architecture
+
+Our project consists of an API and a background service. When the project starts, both the API and the background service are launched. Every 10 minutes, the background service crawls the Embrapa website and updates the data locally, storing it in a cache in JSON and CSV file formats.
+
+All API read operations retrieve data from this local cache to minimize performance impacts and avoid dependency on the Embrapa website, which can sometimes be offline.
+
+Additionally, all read endpoints are protected and require JWT-based authentication to ensure secure access.
 
 ![Project Architecture](https://cdn.discordapp.com/attachments/1374899745033687121/1374899824859676752/Inserir_um_titulo.png?ex=683457fe&is=6833067e&hm=cc5102426aa55870be81004dc73367375b909f6b9bc9a9e8cf178e58f9df2eae)
 
-## License
-
-This project is licensed under the terms included in the [LICENSE](LICENSE) file.
-
-## Contributing
+## 🤝 Contributing
 
 1. Fork the project  
 2. Create a branch for your feature (`git checkout -b feature/new-feature`)  
@@ -144,84 +161,169 @@ This project is licensed under the terms included in the [LICENSE](LICENSE) file
 4. Push to the branch (`git push origin feature/new-feature`)  
 5. Open a Pull Request  
 
-See the pull request template in [.github/pull_request_template.md](.github/pull_request_template.md) for more information on how to contribute.
+See the pull request template in [pull_request_template.md](.github/pull_request_template.md) for more information on how to contribute.
 
-## Examples (Postman)
+## 🧪 Postman Examples
 
 Here are example requests for each endpoint using Postman.
 
-### 1. Authentication - `/auth/token`
+### 1. Register - `/auth/register`
 
-**Method**: POST  
-**URL**: `https://vitiviniculture-api.onrender.com/auth/token`  
-**Body (x-www-form-urlencoded)**:
-```
-username: your_username
-password: your_password
-```
-
----
-
-### 2. Categories - `/categories`
-
-**Method**: GET  
-**URL**: `https://vitiviniculture-api.onrender.com/categories`  
-**Headers**:
-```
-Authorization: Bearer <your_token>
+**Endpoint**: POST `https://vitiviniculture-api.onrender.com/auth/register`
+```bash
+curl --location 'https://vitiviniculture-api.onrender.com/auth/register' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "username": "your_username",
+    "password": "your_password"
+}'
 ```
 
----
+### 2. Login - `/auth/login`
 
-### 3. Exportation - `/exportation`
-
-**Method**: GET  
-**URL**: `https://vitiviniculture-api.onrender.com/exportation`  
-**Headers**:
-```
-Authorization: Bearer <your_token>
-```
-
----
-
-### 4. Importation - `/importation`
-
-**Method**: GET  
-**URL**: `https://vitiviniculture-api.onrender.com/importation`  
-**Headers**:
-```
-Authorization: Bearer <your_token>
+**Endpoint**: POST `https://vitiviniculture-api.onrender.com/auth/login`
+```bash
+curl --location 'https://vitiviniculture-api.onrender.com/auth/login' \
+--header 'Content-Type: application/x-www-form-urlencoded' \
+--data-urlencode 'username=your_username' \
+--data-urlencode 'password=your_password'
 ```
 
----
+### 3. List categories - `/category`
 
-### 5. Production - `/production`
-
-**Method**: GET  
-**URL**: `https://vitiviniculture-api.onrender.com/production`  
-**Headers**:
-```
-Authorization: Bearer <your_token>
+**Endpoint**: GET `https://vitiviniculture-api.onrender.com/category`
+```bash
+curl --location 'https://vitiviniculture-api.onrender.com/category' \
+--header 'Authorization: Bearer your-jwt-token' \
+--header 'Accept: application/json'
 ```
 
----
+### 4. Exportation - `/category/exportation`
 
-### 6. Processing - `/processing`
+**Endpoint**: GET `https://vitiviniculture-api.onrender.com/category/exportation`
+```bash
+# `{}` JSON 
+curl --location 'https://vitiviniculture-api.onrender.com/category/exportation' \
+--header 'Authorization: Bearer your-jwt-token' \
+--header 'Accept: application/json'
 
-**Method**: GET  
-**URL**: `https://vitiviniculture-api.onrender.com/processing`  
-**Headers**:
+# `{}` JSON - with year filter
+curl --location 'https://vitiviniculture-api.onrender.com/category/exportation?year=2002' \
+--header 'Authorization: Bearer your-jwt-token' \
+--header 'Accept: application/json'
+
+# 🟩📊 CSV
+curl --location 'https://vitiviniculture-api.onrender.com/category/exportation' \
+--header 'Authorization: Bearer your-jwt-token' \
+--header 'Accept: text/csv'
+
+# 🟩📊 CSV - with year filter
+curl --location 'https://vitiviniculture-api.onrender.com/category/exportation?year=2002' \
+--header 'Authorization: Bearer your-jwt-token' \
+--header 'Accept: text/csv'
 ```
-Authorization: Bearer <your_token>
+
+### 5. Importation - `/category/importation`
+
+**Endpoint**: GET `https://vitiviniculture-api.onrender.com/category/importation`
+```bash
+# `{}` JSON 
+curl --location 'https://vitiviniculture-api.onrender.com/category/importation' \
+--header 'Authorization: Bearer your-jwt-token' \
+--header 'Accept: application/json'
+
+# `{}` JSON - with year filter
+curl --location 'https://vitiviniculture-api.onrender.com/category/importation?year=2002' \
+--header 'Authorization: Bearer your-jwt-token' \
+--header 'Accept: application/json'
+
+# 🟩📊 CSV
+curl --location 'https://vitiviniculture-api.onrender.com/category/importation' \
+--header 'Authorization: Bearer your-jwt-token' \
+--header 'Accept: text/csv'
+
+# 🟩📊 CSV - with year filter
+curl --location 'https://vitiviniculture-api.onrender.com/category/importation?year=2002' \
+--header 'Authorization: Bearer your-jwt-token' \
+--header 'Accept: text/csv'
 ```
 
----
+### 6. Production - `/category/production`
 
-### 7. Trade - `/trade`
+**Endpoint**: GET `https://vitiviniculture-api.onrender.com/category/production`
+```bash
+# `{}` JSON 
+curl --location 'https://vitiviniculture-api.onrender.com/category/production' \
+--header 'Authorization: Bearer your-jwt-token' \
+--header 'Accept: application/json'
 
-**Method**: GET  
-**URL**: `https://vitiviniculture-api.onrender.com/trade`  
-**Headers**:
+# `{}` JSON - with year filter
+curl --location 'https://vitiviniculture-api.onrender.com/category/production?year=2002' \
+--header 'Authorization: Bearer your-jwt-token' \
+--header 'Accept: application/json'
+
+# 🟩📊 CSV
+curl --location 'https://vitiviniculture-api.onrender.com/category/production' \
+--header 'Authorization: Bearer your-jwt-token' \
+--header 'Accept: text/csv'
+
+# 🟩📊 CSV - with year filter
+curl --location 'https://vitiviniculture-api.onrender.com/category/production?year=2002' \
+--header 'Authorization: Bearer your-jwt-token' \
+--header 'Accept: text/csv'
 ```
-Authorization: Bearer <your_token>
+
+### 7. Processing - `/category/processing`
+
+**Endpoint**: GET `https://vitiviniculture-api.onrender.com/category/processing`
+```bash
+# `{}` JSON 
+curl --location 'https://vitiviniculture-api.onrender.com/category/processing' \
+--header 'Authorization: Bearer your-jwt-token' \
+--header 'Accept: application/json'
+
+# `{}` JSON - with year filter
+curl --location 'https://vitiviniculture-api.onrender.com/category/processing?year=2002' \
+--header 'Authorization: Bearer your-jwt-token' \
+--header 'Accept: application/json'
+
+# 🟩📊 CSV
+curl --location 'https://vitiviniculture-api.onrender.com/category/processing' \
+--header 'Authorization: Bearer your-jwt-token' \
+--header 'Accept: text/csv'
+
+# 🟩📊 CSV - with year filter
+curl --location 'https://vitiviniculture-api.onrender.com/category/processing?year=2002' \
+--header 'Authorization: Bearer your-jwt-token' \
+--header 'Accept: text/csv'
 ```
+
+### 8. Trade - `/category/trade`
+
+**Endpoint**: GET `https://vitiviniculture-api.onrender.com/category/trade`
+```bash
+# `{}` JSON 
+curl --location 'https://vitiviniculture-api.onrender.com/category/trade' \
+--header 'Authorization: Bearer your-jwt-token' \
+--header 'Accept: application/json'
+
+# `{}` JSON - with year filter
+curl --location 'https://vitiviniculture-api.onrender.com/category/trade?year=2002' \
+--header 'Authorization: Bearer your-jwt-token' \
+--header 'Accept: application/json'
+
+# 🟩📊 CSV
+curl --location 'https://vitiviniculture-api.onrender.com/category/trade' \
+--header 'Authorization: Bearer your-jwt-token' \
+--header 'Accept: text/csv'
+
+# 🟩📊 CSV - with year filter
+curl --location 'https://vitiviniculture-api.onrender.com/category/trade?year=2002' \
+--header 'Authorization: Bearer your-jwt-token' \
+--header 'Accept: text/csv'
+```
+
+## 📄 License
+
+This project is licensed under the terms included in the [LICENSE](LICENSE) file.
+

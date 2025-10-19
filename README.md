@@ -1,6 +1,36 @@
+<h2 align = "right"> Select language:</h2>
+
+[<img align="right"  width="30px" src="https://github.com/yammadev/flag-icons/blob/master/svg/US.svg" />](https://github.com/YuriTBarros/Vitiviniculture-API/blob/master/README.md)
+[<img align="right" width="30px" src="https://github.com/yammadev/flag-icons/blob/master/svg/BR.svg"/>](https://github.com/YuriTBarros/Vitiviniculture-API/blob/master/README-PT-BR.md)
+<p align = "right"> Language:</p>
+
+---
+
+
 # 🍇 🍇 🍇 Vitiviniculture API — FastAPI + Scrapers + Docker 
 
 ![GitHub Actions](https://github.com/IgorComune/tech_challenge_ml_engineer/actions/workflows/verify.yml/badge.svg) ![versions](https://img.shields.io/pypi/pyversions/pybadges.svg)
+
+### General Description
+
+This project is a RESTful API built with **FastAPI** designed to serve data related to vitiviniculture (wine production) in Brazil. It employs web scrapers to automatically collect public data from sources like the **Embrapa Vitiviniculture website**, processes it, and stores it in a local cache.
+
+The API provides authenticated endpoints for various data categories—including production, processing, import, export, and trade—making the data readily available in JSON or CSV format for analysis, visualization, or consumption by future machine learning models.
+
+### Academic Context
+
+This project was developed as the **Phase 1 deliverable** for the **Postgraduate Program in Machine Learning Engineering (Postech) at Fiap**. The primary goal was to apply data engineering principles to build a robust data pipeline, from scraping and processing to API deployment, creating a foundational data source for subsequent projects in the course.
+
+## Team Members
+
+This project was developed in collaboration by the following members:
+* **Felippe Maurício** - ([@felippemauricio](https://github.com/felippemauricio))
+* **Igor Comune** - ([@IgorComune](https://github.com/IgorComune))
+* **Mario Gotta** - ([@MariolGotta](https://github.com/MariolGotta))
+* **Yuri T. de Barros** - ([@YuriTBarros](https://github.com/YuriTBarros))
+
+---
+
 
 ## 🏁 Getting Started
 
